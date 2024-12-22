@@ -28,3 +28,5 @@ sudo systemctl start docker
 
 # Verify Docker installation
 docker --version
+sudo usermod -aG docker $USER
+echo "You need to log out and log back in for the group changes to take effect."
