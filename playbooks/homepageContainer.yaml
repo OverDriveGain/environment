@@ -30,7 +30,7 @@
         networks:
           - name: bridge_network
         volumes:
-          - "{{ host_directory }}:{{ container_directory }}:ro"
+          - "{{ homepage_host_directory }}:{{ homepage_container_dist_directory }}:ro"
         state: started
 
     - name: Wait for Apache to start
@@ -40,4 +40,4 @@
 
     - name: Print completion message
       ansible.builtin.debug:
-        msg: "Apache Docker container '{{ apache_docker_image_name }}' is running and serving content from './{{ host_directory }}'."
+        msg: "Apache Docker container '{{ apache_docker_image_name }}' is running and serving content from './{{ homepage_host_directory }}'."
