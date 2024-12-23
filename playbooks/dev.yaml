@@ -1,0 +1,13 @@
+- name: Install Docker
+  hosts: localhost
+  tasks:
+    - name: Get OS version codename
+      shell: '. /etc/os-release && echo $VERSION_CODENAME'
+      register: os_version_codename
+    - name: Set VARIABLE based on OS version
+      set_fact:
+        $VERSION_CODENAME: "{{ 'noble' if os_version_codename.stdout == 'wilma' else os_version_codename.stdout }}"
+
+    - name: Debug the VARIABLE
+      debug:
+        msg: "The value of VARIABLE is {{ VARIABLE }}"

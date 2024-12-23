@@ -1,12 +1,20 @@
----
 - name: Install Docker
-  hosts: webservers
+  hosts: localhost
   become: yes
   vars:
-    # Check if the lsb_release variable is set, otherwise get it from the system environment
-    lsb_release: "{{ lsb_release | default(lookup('pipe', 'lsb_release -cs')) }}"
-
+    ansible_become_pass: "manarmama3"  # Add sudo password her
   tasks:
+    - name: Set os release *fix for mint wilma only
+      shell: '. /etc/os-release && echo $VERSION_CODENAME'
+      register: os_version_codename
+
+    - name: Set VARIABLE based on OS for above function version
+      set_fact:
+        LSB_RELEASE: "{{ 'noble' if os_version_codename.stdout == 'wilma' else os_version_codename.stdout }}"
+    - name: Debug the VARIABLE
+      debug:
+        msg: "The value of LSB_RELEASE is {{ LSB_RELEASE }}"
+
     - name: Update apt cache
       apt:
         update_cache: yes
@@ -27,7 +35,7 @@
 
     - name: Add Docker repository
       apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ lsb_release }} stable"
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ LSB_RELEASE }} stable"
         state: present
 
     - name: Install Docker
