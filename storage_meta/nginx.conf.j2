@@ -5,7 +5,7 @@ events {
 http {
     server {
           listen 80;
-          server_name localhost kaxtus.com;
+          server_name localhost {{ webname }};
           location / {
               proxy_pass http://{{ homepage_docker_image }}:{{ homepage_internal_port }};
               proxy_set_header Host $host;

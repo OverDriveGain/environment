@@ -1,15 +1,21 @@
 ansible_user: ubuntu
-lsb_release: "mint"
-apache_docker_image_name: "httpd:latest"
-repo_url: "git@github.com:kaxtus/homePage.git"
+webname: 'kaxtus.com'
 repo_dest: "../storage_meta"
-abs_repo_dest: "{{ lookup('pipe', 'pwd') }}/storage_meta"
+
+apache_docker_image_name: "ubuntu/apache2"
+repo_url: "git@github.com:kaxtus/homePage.git"
 homepage_docker_image: "homepage_view_image"
 homepage_exposed_port: 85
 homepage_internal_port: 80
-homepage_ip: 'kaxtus.com'
-container_directory: "/usr/local/apache2/htdocs"
-host_directory: "{{ repo_dest }}/homePage/dist"
+homepage_host_directory: "{{ repo_dest }}/homePage/dist"
+homepage_container_dist_directory: "/usr/local/apache2/htdocs"
+
+
+iphone_docker_image: "iphone_view_image"
+iphone_exposed_port: 86
+iphone_internal_port: 80
+iphone_host_storage_directory: "{{ repo_dest }}/iphone"
+iphone_container_storage_directory: "{{ homepage_container_dist_directory }}"
 nginx_image: nginx
 nginx_container_name: nginx-container
 nginx_ports:
