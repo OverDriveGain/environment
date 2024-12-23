@@ -1,5 +1,5 @@
 - name: Deploy Apache Docker Container with Homepage
-  hosts: localhost
+  hosts: kaxtus
   vars_files:
     - ../group_vars/all.yaml
   tasks:

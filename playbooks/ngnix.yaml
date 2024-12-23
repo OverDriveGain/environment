@@ -1,58 +1,47 @@
-- name: Install and configure NGINX in Docker container with reverse proxy
-  hosts: localhost
+- name: Configure Nginx for kaxtus.com
+  hosts: kaxtus
   become: yes
-  vars_files:
-    - ../group_vars/all.yaml
-  vars:
-    ansible_become_pass: "manarmama3"  # Add sudo password her
   tasks:
-    - name: Pull NGINX Docker image
-      docker_image:
+
+    - name: Install Nginx
+      apt:
         name: nginx
-        source: pull
+        state: present
+        update_cache: yes
 
-    - name: Create a custom NGINX config file for reverse proxy
+    - name: Create Nginx configuration for kaxtus.com
       copy:
-        dest: /tmp/nginx.conf
+        dest: /etc/nginx/sites-available/kaxtus.com
         content: |
-          http {
-            server {
-                listen 80;
-                server_name {{homepage_ip}};
-                location / {
-                    proxy_pass http://{{ homepage_docker_image }}:{{homepage_exposed_port}};  # Forward to another host port (8080)
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                }
-            }
-          }
-    - name: Run NGINX container
-      docker_container:
-        name: nginx_container
-        image: nginx
-        state: started
-        restart_policy: always
-        exposed_ports:
-          - "80"
-          - "81"
-          - "443"
-          - "8080"
-        published_ports:
-          - "80:80"
-          - "81:81"
-          - "443:443"
-          - "8080:8080"
-        volumes:
-          - /tmp/nginx.conf:/etc/nginx/nginx.conf:ro  # Mount the custom NGINX config file
-        # If you have SSL certificates, you can also mount them to the container
-        # volumes:
-        #   - /etc/ssl/certs/nginx.crt:/etc/ssl/certs/nginx.crt:ro
-        #   - /etc/ssl/private/nginx.key:/etc/ssl/private/nginx.key:ro
+          server {
+              listen 80;
+              server_name kaxtus.com;
 
-    - name: Ensure NGINX container is running
-      docker_container:
-        name: nginx_container
-        networks:
-          - name: bridge_network
-        state: started
+              location / {
+                  proxy_pass http://localhost:85;  # Forward traffic to port 85
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Enable Nginx site for kaxtus.com
+      file:
+        src: /etc/nginx/sites-available/kaxtus.com
+        dest: /etc/nginx/sites-enabled/kaxtus.com
+        state: link
+
+    - name: Test Nginx configuration
+      command: nginx -t
+      register: nginx_test
+      ignore_errors: yes
+
+    - name: Reload Nginx to apply changes
+      service:
+        name: nginx
+        state: reloaded
+      when: nginx_test.rc == 0
