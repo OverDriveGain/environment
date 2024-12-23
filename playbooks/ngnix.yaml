@@ -1,0 +1,58 @@
+- name: Install and configure NGINX in Docker container with reverse proxy
+  hosts: localhost
+  become: yes
+  vars_files:
+    - ../group_vars/all.yaml
+  vars:
+    ansible_become_pass: "manarmama3"  # Add sudo password her
+  tasks:
+    - name: Pull NGINX Docker image
+      docker_image:
+        name: nginx
+        source: pull
+
+    - name: Create a custom NGINX config file for reverse proxy
+      copy:
+        dest: /tmp/nginx.conf
+        content: |
+          http {
+            server {
+                listen 80;
+                server_name {{homepage_ip}};
+                location / {
+                    proxy_pass http://{{ homepage_docker_image }}:{{homepage_exposed_port}};  # Forward to another host port (8080)
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                }
+            }
+          }
+    - name: Run NGINX container
+      docker_container:
+        name: nginx_container
+        image: nginx
+        state: started
+        restart_policy: always
+        exposed_ports:
+          - "80"
+          - "81"
+          - "443"
+          - "8080"
+        published_ports:
+          - "80:80"
+          - "81:81"
+          - "443:443"
+          - "8080:8080"
+        volumes:
+          - /tmp/nginx.conf:/etc/nginx/nginx.conf:ro  # Mount the custom NGINX config file
+        # If you have SSL certificates, you can also mount them to the container
+        # volumes:
+        #   - /etc/ssl/certs/nginx.crt:/etc/ssl/certs/nginx.crt:ro
+        #   - /etc/ssl/private/nginx.key:/etc/ssl/private/nginx.key:ro
+
+    - name: Ensure NGINX container is running
+      docker_container:
+        name: nginx_container
+        networks:
+          - name: bridge_network
+        state: started

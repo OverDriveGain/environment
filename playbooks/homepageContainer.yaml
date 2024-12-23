@@ -10,7 +10,7 @@
 
     - name: Ensure the Docker container is stopped
       community.docker.docker_container:
-        name: "{{ docker_container_name }}"
+        name: "{{ homepage_docker_image }}"
         state: stopped
       ignore_errors: true
 
@@ -23,19 +23,21 @@
 
     - name: Create Docker container with Apache
       community.docker.docker_container:
-        name: "{{ docker_container_name }}"
-        image: "{{ docker_image }}"
+        name: "{{ homepage_docker_image }}"
+        image: "{{ apache_docker_image_name }}"
         ports:
-          - "{{ exposed_port }}:80"
+          - "{{ homepage_exposed_port }}:80"
+        networks:
+          - name: bridge_network
         volumes:
           - "{{ host_directory }}:{{ container_directory }}:ro"
         state: started
 
     - name: Wait for Apache to start
       ansible.builtin.wait_for:
-        port: "{{ exposed_port }}"
+        port: "{{ homepage_exposed_port }}"
         timeout: 30
 
     - name: Print completion message
       ansible.builtin.debug:
-        msg: "Apache Docker container '{{ docker_container_name }}' is running and serving content from './{{ host_directory }}'."
+        msg: "Apache Docker container '{{ apache_docker_image_name }}' is running and serving content from './{{ host_directory }}'."

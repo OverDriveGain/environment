@@ -38,6 +38,14 @@
         repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ LSB_RELEASE }} stable"
         state: present
 
+    - name: Remove conflicting containerd packages
+      apt:
+        name:
+          - containerd
+          - containerd.io
+        state: absent
+      ignore_errors: yes
+
     - name: Install Docker
       apt:
         name: docker-ce

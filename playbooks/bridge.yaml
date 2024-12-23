@@ -1,0 +1,9 @@
+- name: Setup Docker bridge network and configure containers
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Create a Docker bridge network
+      docker_network:
+        name: bridge_network
+        driver: bridge
+        state: present
