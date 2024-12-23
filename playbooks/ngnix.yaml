@@ -1,47 +1,50 @@
 - name: Configure Nginx for kaxtus.com
   hosts: kaxtus
   become: yes
+  vars_files:
+    - ../group_vars/all.yaml
   tasks:
+  - name: Ensure Docker is installed
+    ansible.builtin.package:
+      name: "{{ docker_package }}"
+      state: present
+    vars:
+      docker_package: "{{ 'docker.io' if ansible_os_family == 'Debian' else 'docker' }}"
 
-    - name: Install Nginx
-      apt:
-        name: nginx
-        state: present
-        update_cache: yes
+  - name: Ensure Docker service is running
+    ansible.builtin.service:
+      name: docker
+      state: started
+      enabled: yes
+  - name: Stop and remove existing Nginx container (if any)
+    ansible.builtin.docker_container:
+      name: nginx-container
+      state: absent  # Stop and remove the container if it's already present
+      force_kill: yes  # Forcefully stop the container if it's running
 
-    - name: Create Nginx configuration for kaxtus.com
-      copy:
-        dest: /etc/nginx/sites-available/kaxtus.com
-        content: |
-          server {
-              listen 80;
-              server_name kaxtus.com;
+  - name: Pull the Nginx Docker image
+    ansible.builtin.docker_image:
+      name: nginx
+      source: pull
 
-              location / {
-                  proxy_pass http://localhost:85;  # Forward traffic to port 85
-                  proxy_set_header Host $host;
-                  proxy_set_header X-Real-IP $remote_addr;
-                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                  proxy_set_header X-Forwarded-Proto $scheme;
-              }
-          }
-        owner: root
-        group: root
-        mode: '0644'
+  - name: Render nginx.conf from template
+    ansible.builtin.template:
+      src: ../storage_meta/nginx.conf.j2  # Path to your Jinja2 template for Nginx config
+      dest: /tmp/nginx.conf  # Destination on the host machine
 
-    - name: Enable Nginx site for kaxtus.com
-      file:
-        src: /etc/nginx/sites-available/kaxtus.com
-        dest: /etc/nginx/sites-enabled/kaxtus.com
-        state: link
+  - name: Run the Nginx container
+    ansible.builtin.docker_container:
+      name: nginx-container
+      image: nginx
+      state: started
+      networks:
+        - name: bridge_network
+      ports:
+        - "80:80"
+      volumes:
+        - /tmp/nginx.conf:/etc/nginx/nginx.conf  # Mount the rendered config file inside the container
 
-    - name: Test Nginx configuration
-      command: nginx -t
-      register: nginx_test
-      ignore_errors: yes
 
-    - name: Reload Nginx to apply changes
-      service:
-        name: nginx
-        state: reloaded
-      when: nginx_test.rc == 0
+  - name: Reload Nginx configuration
+    ansible.builtin.command:
+      cmd: docker exec nginx-container nginx -s reload

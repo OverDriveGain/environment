@@ -32,7 +32,7 @@
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
-
+        validate_certs: no
     - name: Add Docker repository
       apt_repository:
         repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ LSB_RELEASE }} stable"
@@ -48,7 +48,9 @@
 
     - name: Install Docker
       apt:
-        name: docker-ce
+        name:
+          - docker.io
+          - docker-compose
         state: present
 
     - name: Start Docker service

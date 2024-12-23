@@ -6,6 +6,13 @@ repo_dest: "../storage_meta"
 abs_repo_dest: "{{ lookup('pipe', 'pwd') }}/storage_meta"
 homepage_docker_image: "homepage_view_image"
 homepage_exposed_port: 85
+homepage_internal_port: 80
 homepage_ip: 'kaxtus.com'
 container_directory: "/usr/local/apache2/htdocs"
 host_directory: "{{ repo_dest }}/homePage/dist"
+nginx_image: nginx
+nginx_container_name: nginx-container
+nginx_ports:
+  - "80:80"
+nginx_worker_processes: auto
+nginx_worker_connections: 1024

@@ -26,7 +26,7 @@
         name: "{{ homepage_docker_image }}"
         image: "{{ apache_docker_image_name }}"
         ports:
-          - "{{ homepage_exposed_port }}:80"
+          - "{{ homepage_exposed_port }}:{{ homepage_internal_port }}"
         networks:
           - name: bridge_network
         volumes:
