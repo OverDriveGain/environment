@@ -1,0 +1,11 @@
+ansible_user: ubuntu
+lsb_release: "mint"
+apache_docker_image_name: "httpd:latest"
+repo_url: "git@github.com:kaxtus/homePage.git"
+repo_dest: "../storage_meta"
+abs_repo_dest: "{{ lookup('pipe', 'pwd') }}/storage_meta"
+homepage_docker_image: "homepage_view_image"
+homepage_exposed_port: 85
+homepage_ip: 'kaxtus.com'
+container_directory: "/usr/local/apache2/htdocs"
+host_directory: "{{ repo_dest }}/homePage/dist"
