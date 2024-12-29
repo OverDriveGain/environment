@@ -20,3 +20,13 @@ iphone_container_storage_directory: "{{ homepage_container_dist_directory }}"
 nginx_image: nginx
 nginx_worker_processes: auto
 nginx_worker_connections: 1024
+
+default_jump_host_service_name: "ssh_jump_kaxtus"
+desktop_jump_bridge_host_dict:
+  hostname: kaxtus.com
+  username: ubuntu
+  manar_desktop_bridge_params:
+    username: manar
+    port: 10022
+    ssh_key_dir: "/home/manar/.ssh/id_rsa"
+    jump_host_service_name: "{{ default_jump_host_service_name }}"

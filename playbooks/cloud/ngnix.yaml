@@ -2,7 +2,7 @@
   hosts: kaxtus
   become: yes
   vars_files:
-    - ../group_vars/all.yaml
+    - ../vars/all.yaml
   tags:
     - nginx
 

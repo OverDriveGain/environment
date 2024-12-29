@@ -1,0 +1,54 @@
+- name: Create and enable autossh bridge service
+  hosts: localhost
+  become: yes
+  vars_files:
+    - ../../vars/all.yaml
+  tasks:
+    - name: Check if host_name is defined in config all.yaml
+      fail:
+        msg: "host_name {{ host_name }} is not defined in desktop_jump_bridge_host_dict in all.yaml"
+      when: desktop_jump_bridge_host_dict[host_name] is not defined
+
+    - name: Check if port is defined for host_name
+      fail:
+        msg: "No port defined for host_name: {{ host_name }}"
+      when: desktop_jump_bridge_host_dict[host_name].port is not defined
+
+    - name: Set the port and username from host_name variable in all.yaml
+      set_fact:
+        ssh_port: "{{ desktop_jump_bridge_host_dict[host_name].port }}"
+        username: "{{ desktop_jump_bridge_host_dict[host_name].username }}"
+        ssh_key_dir: "{{ desktop_jump_bridge_host_dict[host_name].ssh_key_dir }}"
+        jump_host_service_name: "{{ desktop_jump_bridge_host_dict[host_name].jump_host_service_name }}"
+        jump_host_name: "{{ desktop_jump_bridge_host_dict.hostname }}"
+        jump_host_username: "{{ desktop_jump_bridge_host_dict.username }}"
+    - name: Install autossh if not present
+      apt:
+        name: autossh
+        state: present
+
+    - name: Create the systemd service for autossh bridge
+      copy:
+        dest: /etc/systemd/system/{{ jump_host_service_name }}.service
+        content: |
+          [Unit]
+          Description=Jump host service enable access to this host from {{ jump_host_name }} on port {{ ssh_port }} to local port 22
+          After=network.target
+          
+          [Service]
+          Environment="AUTOSSH_GATETIME=0"
+          ExecStart=/usr/bin/autossh -i {{ ssh_key_dir }} -N -o "UserKnownHostsFile=/dev/null" -o "PubkeyAuthentication=yes" -o "StrictHostKeyChecking=no" -o "PasswordAuthentication=no" -o "ServerAliveInterval 60" -o "ServerAliveCountMax 3" -R {{ jump_host_name }}:{{ ssh_port }}:localhost:22 {{ jump_host_username }}@{{ jump_host_name }}
+          
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Enable and start the autossh bridge service
+      systemd:
+        name: "{{ jump_host_service_name }}"
+        enabled: yes
+        state: started
+
+    - name: Display SSH access message
+      debug:
+        msg: "We created a service called {{ jump_host_service_name }}. Now you can access this PC from anywhere if you have the ssh keys using command: ssh -p {{ ssh_port }} [user_configured_with_ssh_access_added]@{{ jump_host_name }}"
+

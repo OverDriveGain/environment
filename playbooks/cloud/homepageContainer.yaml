@@ -1,7 +1,7 @@
 - name: Deploy Apache Docker Container with Homepage
   hosts: kaxtus
   vars_files:
-    - ../group_vars/all.yaml
+    - ../vars/all.yaml
   tasks:
     - name: Ensure storage_meta directory exists
       ansible.builtin.file:
