@@ -48,17 +48,6 @@
         msg: "The public key {{ ssh_pub_key_dir }} does not exist. Use command: ssh-keygen -y -f {{ ssh_key_dir }} > {{ ssh_pub_key_dir }}."
       when: not ssh_key_stat.stat.exists
 
-    - name: Install OpenSSH server if not present
-      apt:
-        name: openssh-server
-        state: present
-
-    - name: Ensure SSH service is running
-      service:
-        name: ssh
-        state: started
-        enabled: yes
-
     - name: Create the systemd service for autossh bridge
       copy:
         dest: /etc/systemd/system/{{ jump_host_service_name }}.service
@@ -83,3 +72,4 @@
     - name: Display SSH access message
       debug:
         msg: "We created a service called {{ jump_host_service_name }}. Now you can access this PC from anywhere if you have the same ssh keys of [user_x] using command: ssh -p {{ ssh_port }} [user_x]@{{ jump_host_name }}"
+

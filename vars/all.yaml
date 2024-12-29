@@ -25,8 +25,9 @@ default_jump_host_service_name: "ssh_jump_kaxtus"
 desktop_jump_bridge_host_dict:
   hostname: kaxtus.com
   username: ubuntu
-  manar_desktop_bridge_params:
+  desktop_berlin:
     username: manar
     port: 10022
     ssh_key_dir: "/home/manar/.ssh/id_rsa"
+    ssh_pub_key_dir: "/home/manar/.ssh/id_rsa.pub"
     jump_host_service_name: "{{ default_jump_host_service_name }}"
