@@ -1,6 +1,7 @@
 ansible_user: ubuntu
 webname: 'kaxtus.com'
 repo_dest: "../storage_meta"
+web_port: 80
 
 apache_docker_image_name: "ubuntu/apache2"
 repo_url: "git@github.com:kaxtus/homePage.git"
@@ -17,8 +18,5 @@ iphone_internal_port: 80
 iphone_host_storage_directory: "{{ repo_dest }}/iphone"
 iphone_container_storage_directory: "{{ homepage_container_dist_directory }}"
 nginx_image: nginx
-nginx_container_name: nginx-container
-nginx_ports:
-  - "80:80"
 nginx_worker_processes: auto
 nginx_worker_connections: 1024
