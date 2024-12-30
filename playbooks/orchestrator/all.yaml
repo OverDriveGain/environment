@@ -1,8 +1,0 @@
-- name: Install Docker
-  import_playbook: ../playbooks/docker.yaml
-- name: Network Between Dockers
-  import_playbook: ../playbooks/bridge.yaml
-- name: Home Page container
-  import_playbook: ../playbooks/homepageContainer.yaml
-- name: ngnix
-  import_playbook: ../playbooks/ngnix.yaml

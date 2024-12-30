@@ -1,8 +1,0 @@
-- name: Network Between Dockers
-  import_playbook: ../bridge.yaml
-- name: ngnix
-  import_playbook: ../ngnix.yaml
-- name: Home Page container
-  import_playbook: ../homepageContainer.yaml
-- name: IPhone container
-  import_playbook: ../iphone.yaml
