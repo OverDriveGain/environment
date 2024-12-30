@@ -2,14 +2,12 @@
   hosts: kaxtus
   become: yes
   vars_files:
-    - ../vars/all.yaml
-  tags:
-    - nginx
+    - ../../vars/all.yaml
 
   pre_tasks:
     - name: Check if nginx.conf template exists
       ansible.builtin.stat:
-        path: "../storage_meta/nginx.conf.j2"
+        path: "{{ nginx_cfg_dir }}"
       delegate_to: localhost
       register: nginx_template
       failed_when: not nginx_template.stat.exists
@@ -50,7 +48,7 @@
 
     - name: Render nginx.conf template
       ansible.builtin.template:
-        src: "../storage_meta/nginx.conf.j2"
+        src: "{{ nginx_cfg_dir }}"
         dest: "{{ temp_config_dir.path }}/nginx.conf"
         mode: '0644'
       register: nginx_config

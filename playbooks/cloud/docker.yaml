@@ -1,8 +1,9 @@
+# Simplty installs docker
 - name: Install Docker
   hosts: localhost
   become: yes
-  vars:
-    ansible_become_pass: "manarmama3"  # Add sudo password her
+  vars_files:
+    - ../../vars/all.yaml
   tasks:
     - name: Set os release *fix for mint wilma only
       shell: '. /etc/os-release && echo $VERSION_CODENAME'

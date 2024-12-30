@@ -1,0 +1,11 @@
+- name: Remove existing Docker bridge network if it exists
+  docker_network:
+    name: "{{ bridge_network_name }}"
+    state: absent
+  ignore_errors: yes
+
+- name: Create a Docker bridge network
+  docker_network:
+    name: "{{ bridge_network_name }}"
+    driver: bridge
+    state: present

@@ -1,0 +1,35 @@
+- name: Ensure blkid is installed
+  package:
+    name: util-linux
+    state: present
+
+- name: Get UUID of the NTFS partition
+  command: blkid -s UUID -o value /dev/nvme0n1p12
+  register: blkid_output
+  failed_when: blkid_output.stdout == ""
+  changed_when: false
+
+- name: Create mount point
+  file:
+    path: /mnt/tb
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Check if fstab entry exists
+  lineinfile:
+    path: /etc/fstab
+    regexp: "UUID={{ blkid_output.stdout }}\\s+/mnt/tb\\s+ntfs-3g"
+    line: "UUID={{ blkid_output.stdout }} /mnt/tb ntfs-3g defaults 0 0"
+    state: present
+
+- name: Backup fstab before changes
+  copy:
+    src: /etc/fstab
+    dest: /etc/fstab.bak
+    remote_src: yes
+  when: not ansible_check_mode
+  become: true
+- name: Mount the partition
+  command: mount -a

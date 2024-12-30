@@ -1,0 +1,34 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  roles:
+    - role: 1tbmount
+      tags:
+        - '1tbmount'
+    - role: jumphost
+      tags:
+        - 'jumphost'
+      vars:
+        host_name: "berlin"
+        default_jump_host_service_name: "ssh_jump_kaxtus"
+        desktop_jump_bridge_host_dict:
+          hostname: kaxtus.com
+          username: ubuntu
+          berlin:
+            username: manar
+            port: 10022
+            ssh_key_dir: "/home/manar/.ssh/id_rsa"
+            ssh_pub_key_dir: "/home/manar/.ssh/id_rsa.pub"
+            jump_host_service_name: "{{ default_jump_host_service_name }}"
+    - role: cloud
+      tags:
+        - 'cloud'
+      vars:
+        bridge_network_name: "bridge_network"
+        repo_dest: "../storage_meta"
+        homepage_docker_image: "homepage_view_image"
+        homepage_repo_url: "git@github.com:kaxtus/homePage.git"
+        homepage_exposed_port: 85
+        homepage_internal_port: 80
+        homepage_host_directory: "{{ repo_dest }}/homePage/dist"
+        homepage_container_dist_directory: "/usr/local/apache2/htdocs"

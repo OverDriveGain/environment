@@ -1,0 +1,38 @@
+- name: Ensure storage_meta directory exists
+  ansible.builtin.file:
+    path: "{{ repo_dest }}"
+    state: directory
+
+- name: Ensure the Docker container is stopped
+  community.docker.docker_container:
+    name: "{{ homepage_docker_image }}"
+    state: stopped
+  ignore_errors: true
+
+- name: Clone the repository
+  ansible.builtin.git:
+    repo: "{{ homepage_repo_url }}"
+    dest: "{{ repo_dest }}/homePage"
+    update: yes
+    force: yes
+
+- name: Create Docker container with Apache
+  community.docker.docker_container:
+    name: "{{ homepage_docker_image }}"
+    image: "ubuntu/apache2"
+    ports:
+      - "{{ homepage_exposed_port }}:{{ homepage_internal_port }}"
+    networks:
+      - name: "{{ bridge_network_name }}"
+    volumes:
+      - "{{ homepage_host_directory }}:{{ homepage_container_dist_directory }}:ro"
+    state: started
+
+- name: Wait for Apache to start
+  ansible.builtin.wait_for:
+    port: "{{ homepage_exposed_port }}"
+    timeout: 30
+
+- name: Print completion message
+  ansible.builtin.debug:
+    msg: "Apache Docker container ubuntu/apache2 is running and serving content from './{{ homepage_host_directory }}'."

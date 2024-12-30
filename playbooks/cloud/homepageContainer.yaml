@@ -1,7 +1,7 @@
 - name: Deploy Apache Docker Container with Homepage
   hosts: kaxtus
   vars_files:
-    - ../vars/all.yaml
+    - ../../vars/all.yaml
   tasks:
     - name: Ensure storage_meta directory exists
       ansible.builtin.file:
@@ -28,7 +28,7 @@
         ports:
           - "{{ homepage_exposed_port }}:{{ homepage_internal_port }}"
         networks:
-          - name: bridge_network
+          - name: "{{ bridge_network_name }}"
         volumes:
           - "{{ homepage_host_directory }}:{{ homepage_container_dist_directory }}:ro"
         state: started

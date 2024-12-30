@@ -1,13 +1,16 @@
-- name: Install Docker
+- name: Playbook that requires sudo
   hosts: localhost
+  become: yes  # This is required to use sudo
+  become_method: sudo  # Default method to use sudo
   tasks:
-    - name: Get OS version codename
-      shell: '. /etc/os-release && echo $VERSION_CODENAME'
-      register: os_version_codename
-    - name: Set VARIABLE based on OS version
-      set_fact:
-        $VERSION_CODENAME: "{{ 'noble' if os_version_codename.stdout == 'wilma' else os_version_codename.stdout }}"
+    - name: Install the `curl` package (requires sudo)
+      apt:
+        name: curl
+        state: present
+      become: yes  # Ensures this task runs with sudo privileges
 
-    - name: Debug the VARIABLE
-      debug:
-        msg: "The value of VARIABLE is {{ VARIABLE }}"
+    - name: Create a file in a restricted directory (requires sudo)
+      file:
+        path: /root/testfile.txt
+        state: touch
+      become: yes  # Ensures this task runs with sudo privileges

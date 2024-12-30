@@ -1,3 +1,4 @@
+# This enables the remote access to any host, prereq is the id_rsa to be accepted in the host
 - name: Create and enable autossh bridge service
   hosts: localhost
   become: yes

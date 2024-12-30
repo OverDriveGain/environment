@@ -1,0 +1,80 @@
+- name: Set the port and username for berlin desktop
+  set_fact:
+    host_name: "berlin"
+    ssh_port: "{{ desktop_jump_bridge_host_dict[host_name].port }}"
+    username: "{{ desktop_jump_bridge_host_dict[host_name].username }}"
+    ssh_key_dir: "{{ desktop_jump_bridge_host_dict[host_name].ssh_key_dir }}"
+    ssh_pub_key_dir: "{{ desktop_jump_bridge_host_dict[host_name].ssh_pub_key_dir }}"
+    jump_host_service_name: "{{ desktop_jump_bridge_host_dict[host_name].jump_host_service_name }}"
+    jump_host_name: "{{ desktop_jump_bridge_host_dict.hostname }}"
+    jump_host_username: "{{ desktop_jump_bridge_host_dict.username }}"
+
+- name: Check if host_name is defined in config
+  fail:
+    msg: "host_name {{ host_name }} is not defined in desktop_jump_bridge_host_dict"
+  when: desktop_jump_bridge_host_dict[host_name] is not defined
+
+- name: Check if port is defined for host_name
+  fail:
+    msg: "No port defined for host_name: {{ host_name }}"
+  when: desktop_jump_bridge_host_dict[host_name].port is not defined
+
+- name: Debugging variables
+  debug:
+    msg: "{{ desktop_jump_bridge_host_dict }}"
+
+- name: Install autossh if not present
+  apt:
+    name: autossh
+    state: present
+
+- name: Check if the public key exists
+  stat:
+    path: "{{ ssh_pub_key_dir }}"
+  register: ssh_key_stat
+
+- name: Display message if public key exists
+  debug:
+    msg: "The public key already exists at {{ ssh_pub_key_dir }}"
+  when: ssh_key_stat.stat.exists
+
+- name: Fail and exit if public key does not exist
+  fail:
+    msg: "The public key {{ ssh_pub_key_dir }} does not exist. Use command: ssh-keygen -y -f {{ ssh_key_dir }} > {{ ssh_pub_key_dir }}."
+  when: not ssh_key_stat.stat.exists
+
+- name: Install OpenSSH server if not present
+  apt:
+    name: openssh-server
+    state: present
+
+- name: Ensure SSH service is running
+  service:
+    name: ssh
+    state: started
+    enabled: yes
+
+- name: Create the systemd service for autossh bridge
+  copy:
+    dest: /etc/systemd/system/{{ jump_host_service_name }}.service
+    content: |
+      [Unit]
+      Description=Jump host service enable access to this host from {{ jump_host_name }} on port {{ ssh_port }} to local port 22
+      After=network.target
+      
+      [Service]
+      Environment="AUTOSSH_GATETIME=0"
+      ExecStart=/usr/bin/autossh -i {{ ssh_key_dir }} -N -o "UserKnownHostsFile=/dev/null" -o "PubkeyAuthentication=yes" -o "StrictHostKeyChecking=no" -o "PasswordAuthentication=no" -o "ServerAliveInterval 60" -o "ServerAliveCountMax 3" -R {{ jump_host_name }}:{{ ssh_port }}:localhost:22 {{ jump_host_username }}@{{ jump_host_name }}
+      
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable and start the autossh bridge service
+  systemd:
+    name: "{{ jump_host_service_name }}"
+    enabled: yes
+    state: started
+
+- name: Display SSH access message
+  debug:
+    msg: "We created a service called {{ jump_host_service_name }}. Now you can access this PC from anywhere if you have the same ssh keys of [user_x] using command: ssh -p {{ ssh_port }} [user_x]@{{ jump_host_name }}"

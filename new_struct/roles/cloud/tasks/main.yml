@@ -1,0 +1,32 @@
+---
+# ansible [core 2.16.9]
+# Ubuntu 24
+
+- name: Check if Docker is installed
+  ansible.builtin.command: docker --version
+  register: docker_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Debug Docker version if installed
+  ansible.builtin.debug:
+    msg: "No need to install Docker. Currently installed version is: {{ docker_check.stdout }}"
+  when: docker_check.rc == 0
+
+- name: Install Docker
+  when: docker_check.rc != 0
+  ansible.builtin.include_tasks:
+    file: docker.yml
+
+- name: Create Docker Network Bridge
+  ansible.builtin.include_tasks:
+    file: bridge.yml
+
+- name: Create Docker Kaxtus Webpage Container
+  ansible.builtin.include_tasks:
+    file: kaxtus.yml
+
+- name: Create Docker IPhone Share Container
+  ansible.builtin.include_tasks:
+    file: iphone.yml
+

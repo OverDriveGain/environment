@@ -5,9 +5,9 @@ This project is dedicated to automating, and keep tracking of applied changes to
 
 # Tasks:
 ## Berlin desktop:
-1. Jump host: set host_name as in config for vars
+1. Jump host: jumps berlin host 
 ```angular2html
-ansible-playbook playbooks/desktop/jump.yaml --ask-become-pass -vvv -e "host_name=desktop_berlin"
+ansible-playbook playbooks/desktop/jump.yaml --ask-become-pass -vvv
 ```
 ## Cloud in amazon:
 1. Kaxtus website

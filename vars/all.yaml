@@ -1,7 +1,12 @@
+become_password: "manarmama3"
 ansible_user: ubuntu
 webname: 'kaxtus.com'
 repo_dest: "../storage_meta"
 web_port: 80
+bridge_network_name: "bridge_network"
+
+# Ansible become pass for installing docker as sudo
+ansible_become_pass: ""
 
 apache_docker_image_name: "ubuntu/apache2"
 repo_url: "git@github.com:kaxtus/homePage.git"
@@ -17,15 +22,21 @@ iphone_exposed_port: 86
 iphone_internal_port: 80
 iphone_host_storage_directory: "{{ repo_dest }}/iphone"
 iphone_container_storage_directory: "{{ homepage_container_dist_directory }}"
+########################
+# Cloud configuration #
+######################
 nginx_image: nginx
+nginx_cfg_dir: "{{ playbook_dir }}/../../storage_meta/nginx.conf.j2"
 nginx_worker_processes: auto
 nginx_worker_connections: 1024
-
+#########################
+# Desktop configuration#
+########################
 default_jump_host_service_name: "ssh_jump_kaxtus"
 desktop_jump_bridge_host_dict:
   hostname: kaxtus.com
   username: ubuntu
-  desktop_berlin:
+  berlin:
     username: manar
     port: 10022
     ssh_key_dir: "/home/manar/.ssh/id_rsa"
