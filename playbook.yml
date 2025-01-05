@@ -23,6 +23,6 @@
     - role: keyboard-shortcuts
       tags:
         - 'keyboard-shortcuts'
-    - role: add-main-ssh-host
+    - role: ssh-client
       tags:
-        - 'add-main-ssh-host'
+        - 'ssh-client'

@@ -1,0 +1,42 @@
+# Adds entry for main cloud in ssh_config e.g., to be able to ssh kaxtus
+- name: Get actual user home directory
+  become: no
+  ansible.builtin.set_fact:
+    actual_home: "{{ lookup('env', 'HOME') }}"
+
+- name: Configure SSH {{ ssh_client_config_host }} alias for {{ host_name }}
+  ansible.builtin.lineinfile:
+    path: "{{ actual_home }}/.ssh/config"
+    create: true
+    line: "{{ item }}"
+    state: present
+    mode: '0600'
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+  loop:
+    - "Host {{ ssh_client_config_host }}"
+    - "    HostName {{ host_name }}"
+    - "    Hostname {{ host_ip }}"
+    - "    User ubuntu"
+    - "    ForwardAgent yes"
+  register: ssh_config_result
+
+- name: Display SSH configuration changes
+  ansible.builtin.debug:
+    msg: |
+      SSH Configuration Summary:
+      - File edited: {{ actual_home }}/.ssh/config
+      - Owner: {{ lookup('env', 'USER') }}
+      
+      Changes made:
+      {% for item in ssh_config_result.results %}
+      - Line "{{ item.item }}"
+        {% if item.changed %}
+        Status: Added/Modified
+        {% else %}
+        Status: Already exists
+        {% endif %}
+      {% endfor %}
+      
+      You can now access the host using:
+      ssh {{ ssh_client_config_host }}

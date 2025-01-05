@@ -2,24 +2,24 @@
 # Set parameters in ansible.cfg
 - name: Set the port and username for localhost
   set_fact:
-    host_name: "{{ host_name }}"
-    ssh_port: "{{ local_host_dict[host_name].port }}"
-    username: "{{ local_host_dict[host_name].username }}"
-    ssh_key_dir: "{{ local_host_dict[host_name].ssh_key_dir }}"
-    ssh_pub_key_dir: "{{ local_host_dict[host_name].ssh_pub_key_dir }}"
+    user_pc_name: "{{ user_pc_name }}"
+    ssh_port: "{{ local_host_dict[user_pc_name].port }}"
+    username: "{{ local_host_dict[user_pc_name].username }}"
+    ssh_key_dir: "{{ local_host_dict[user_pc_name].ssh_key_dir }}"
+    ssh_pub_key_dir: "{{ local_host_dict[user_pc_name].ssh_pub_key_dir }}"
     jump_host_service_name: "{{ jump_host_service_name }}"
-    jump_host_name: "{{ remote_host_name }}"
-    jump_host_username: "{{ remote_host_username }}"
+    jump_host_name: "{{ remote_jump_host_name }}"
+    jump_host_username: "{{ remote_jump_host_username }}"
 
 - name: Check if host_name is defined in config
   fail:
-    msg: "host_name {{ host_name }} is not defined in local_host_dict"
-  when: local_host_dict[host_name] is not defined
+    msg: "user_pc_name {{ user_pc_name }} is not defined in local_host_dict"
+  when: local_host_dict[user_pc_name] is not defined
 
-- name: Check if port is defined for host_name
+- name: Check if port is defined for user_pc_name
   fail:
-    msg: "No port defined for host_name: {{ host_name }}"
-  when: local_host_dict[host_name].port is not defined
+    msg: "No port defined for user_pc_name: {{ user_pc_name }}"
+  when: local_host_dict[user_pc_name].port is not defined
 
 - name: Debugging variables
   debug:

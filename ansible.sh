@@ -4,6 +4,7 @@
 verbosity=""
 limit=""
 tags="jumphost"
+extra_vars=()
 
 # Function to display help
 function display_help {
@@ -13,6 +14,7 @@ function display_help {
   echo "  -v                Enable verbosity (-vvvv)"
   echo "  -l LIMIT          Set the limit (e.g., 'desktop')"
   echo "  -t TAGS           Set the tags (e.g., 'jumphost')"
+  echo "  -e KEY=VALUE      Set extra variables (can be used multiple times)"
   echo "  --help            Display this help message"
   exit 0
 }
@@ -23,6 +25,7 @@ while [[ $# -gt 0 ]]; do
     -v) verbosity="-vvvv" ;;
     -l) limit="$2"; shift ;;
     -t) tags="$2"; shift ;;
+    -e) extra_vars+=("$2"); shift ;;
     --help) display_help ;;
     *) echo "Invalid option: $1"; display_help ;;
   esac
@@ -36,5 +39,11 @@ if [ -z "$limit" ]; then
   exit 1
 fi
 
+# Construct the extra vars arguments
+extra_vars_string=""
+for var in "${extra_vars[@]}"; do
+  extra_vars_string+=" -e '$var'"
+done
+
 # Run ansible-playbook with the provided or default arguments
-ansible-playbook $verbosity -i inventory.ini playbook.yml --limit $limit --tags $tags --become-password-file password
+eval "ansible-playbook $verbosity -i inventory.ini playbook.yml --limit $limit --tags $tags$extra_vars_string --become-password-file password"
