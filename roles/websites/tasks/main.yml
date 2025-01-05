@@ -20,6 +20,28 @@
   become: no
   register: host_root_creation
 
+- name: Ensure .ssh directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: '0700'
+
+- name: Add GitHub to known hosts
+  ansible.builtin.known_hosts:
+    name: "github.com"
+    key: "{{ lookup('pipe', 'ssh-keyscan -t rsa github.com') }}"
+    state: present
+
+- name: Test GitHub SSH connection
+  ansible.builtin.command: ssh -T git@github.com
+  register: github_test
+  ignore_errors: yes
+  changed_when: false
+
+- name: Show GitHub connection test result
+  ansible.builtin.debug:
+    msg: "GitHub connection test: {{ github_test.stderr if github_test.stderr is defined else github_test.stdout }}"
+
 - name: Include all website tasks
   ansible.builtin.include_tasks:
     apply:
@@ -29,3 +51,4 @@
   tags: 'website'
   vars:
     website: "{{ item.path | basename | regex_replace('\\.yml$', '') }}"
+

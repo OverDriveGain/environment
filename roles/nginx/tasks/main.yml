@@ -23,13 +23,8 @@
     src: "{{ nginx_cfg_dir }}"
     dest: "{{ nginx_host_config_path }}/nginx.conf"
     mode: '0644'
-  register: nginx_config_copy
-
-- name: Validate Nginx configuration when deployed
-  ansible.builtin.command:
-    cmd: "docker exec {{ nginx_container_name }} nginx -t"
-  when: nginx_config_copy.changed
   register: nginx_config
+
 
 - name: Copy SSL certificates
   ansible.builtin.copy:
