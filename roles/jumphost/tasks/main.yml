@@ -1,27 +1,29 @@
-- name: Set the port and username for berlin desktop
+# Sets the jumphost for the host, each entry in inventory.ini desktop_jump_host_dict has configuration for different desktop for this to run
+# Set parameters in ansible.cfg
+- name: Set the port and username for localhost
   set_fact:
-    host_name: "berlin"
-    ssh_port: "{{ desktop_jump_bridge_host_dict[host_name].port }}"
-    username: "{{ desktop_jump_bridge_host_dict[host_name].username }}"
-    ssh_key_dir: "{{ desktop_jump_bridge_host_dict[host_name].ssh_key_dir }}"
-    ssh_pub_key_dir: "{{ desktop_jump_bridge_host_dict[host_name].ssh_pub_key_dir }}"
-    jump_host_service_name: "{{ desktop_jump_bridge_host_dict[host_name].jump_host_service_name }}"
-    jump_host_name: "{{ desktop_jump_bridge_host_dict.hostname }}"
-    jump_host_username: "{{ desktop_jump_bridge_host_dict.username }}"
+    host_name: "{{ host_name }}"
+    ssh_port: "{{ local_host_dict[host_name].port }}"
+    username: "{{ local_host_dict[host_name].username }}"
+    ssh_key_dir: "{{ local_host_dict[host_name].ssh_key_dir }}"
+    ssh_pub_key_dir: "{{ local_host_dict[host_name].ssh_pub_key_dir }}"
+    jump_host_service_name: "{{ jump_host_service_name }}"
+    jump_host_name: "{{ remote_host_name }}"
+    jump_host_username: "{{ remote_host_username }}"
 
 - name: Check if host_name is defined in config
   fail:
-    msg: "host_name {{ host_name }} is not defined in desktop_jump_bridge_host_dict"
-  when: desktop_jump_bridge_host_dict[host_name] is not defined
+    msg: "host_name {{ host_name }} is not defined in local_host_dict"
+  when: local_host_dict[host_name] is not defined
 
 - name: Check if port is defined for host_name
   fail:
     msg: "No port defined for host_name: {{ host_name }}"
-  when: desktop_jump_bridge_host_dict[host_name].port is not defined
+  when: local_host_dict[host_name].port is not defined
 
 - name: Debugging variables
   debug:
-    msg: "{{ desktop_jump_bridge_host_dict }}"
+    msg: "{{ local_host_dict }}"
 
 - name: Install autossh if not present
   apt:
@@ -77,4 +79,4 @@
 
 - name: Display SSH access message
   debug:
-    msg: "We created a service called {{ jump_host_service_name }}. Now you can access this PC from anywhere if you have the same ssh keys of [user_x] using command: ssh -p {{ ssh_port }} [user_x]@{{ jump_host_name }}"
+    msg: "We created a service /etc/systemd/system/{{ jump_host_service_name }}.service. Now you can access this PC from anywhere if you have the same ssh keys of [user_x] using command: ssh -p {{ ssh_port }} [user_x]@{{ jump_host_name }}"

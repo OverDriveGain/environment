@@ -1,0 +1,10 @@
+# ToDo add in global
+repo_dest: "../storage_meta"
+bridge_network_name: "bridge_network"
+
+homepage_docker_image: "homepage_view_image"
+homepage_repo_url: "git@github.com:kaxtus/homePage.git"
+homepage_exposed_port: 85
+homepage_internal_port: 80
+homepage_host_directory: "{{ repo_dest }}/homePage/dist"
+homepage_container_dist_directory: "/usr/local/apache2/htdocs"

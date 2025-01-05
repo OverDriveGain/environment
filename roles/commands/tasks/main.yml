@@ -1,0 +1,20 @@
+# Adds as of now commands:
+# publicip
+- name: Find the user's default shell
+  ansible.builtin.shell: echo $SHELL
+  register: user_shell
+
+- name: Determine the shell configuration file
+  set_fact:
+    shell_config: "{{ ansible_env.HOME }}{{ '/.zshrc' if user_shell.stdout.endswith('zsh') else '/.bashrc' }}"
+
+- name: Add publicip alias to the shell configuration
+  ansible.builtin.lineinfile:
+    path: "{{ shell_config }}"
+    line: 'alias publicip="curl -4 ifconfig.me"'
+    create: yes
+
+- name: Reload the shell configuration
+  ansible.builtin.shell: source "{{ shell_config }}"
+  args:
+    executable: /bin/bash

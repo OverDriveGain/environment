@@ -1,0 +1,47 @@
+# roles/keyboard-shortcuts/tasks/main.yml
+---
+- name: Set workspace switching shortcuts
+  dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  become: false
+  loop:
+    - key: "/org/gnome/desktop/wm/keybindings/switch-to-workspace-right"
+      value: "['<Control><Super>Right']"
+      desc: "Switch to right workspace"
+      command: "dconf write /org/gnome/desktop/wm/keybindings/switch-to-workspace-right \"['<Control><Super>Right']\""
+    - key: "/org/gnome/desktop/wm/keybindings/switch-to-workspace-left"
+      value: "['<Control><Super>Left']"
+      desc: "Switch to left workspace"
+      command: "dconf write /org/gnome/desktop/wm/keybindings/switch-to-workspace-left \"['<Control><Super>Left']\""
+  register: shortcuts_result
+
+- name: Display information about configured shortcuts
+  debug:
+    msg: |
+      ╔════════════════════════════════════════════════════════════════════════════════╗\n
+      ║                      KEYBOARD SHORTCUTS CONFIGURATION                           ║\n
+      ╚════════════════════════════════════════════════════════════════════════════════╝\n\n
+      CONFIGURED SHORTCUTS:\n
+        • Switch to right workspace\n
+          Shortcut: ['<Control><Super>Right']\n
+          Command:  dconf write /org/gnome/desktop/wm/keybindings/switch-to-workspace-right "['<Control><Super>Right']"\n\n
+        • Switch to left workspace\n
+          Shortcut: ['<Control><Super>Left']\n
+          Command:  dconf write /org/gnome/desktop/wm/keybindings/switch-to-workspace-left "['<Control><Super>Left']"\n\n
+      MANUAL CONFIGURATION:\n
+      To set these shortcuts manually, use:\n
+        $ dconf write /org/gnome/desktop/wm/keybindings/switch-to-workspace-right "['<Control><Super>Right']"\n
+        $ dconf write /org/gnome/desktop/wm/keybindings/switch-to-workspace-left "['<Control><Super>Left']"\n\n
+      WARNINGS AND NOTES:\n
+        ⚠️ Language Switching:\n
+           In Linux Mint 22, the default language switching shortcut is Ctrl + Win\n
+           This must be configured manually through system settings\n\n
+      VERIFICATION:\n
+      To verify current shortcuts:\n
+        $ dconf read /org/gnome/desktop/wm/keybindings/switch-to-workspace-right\n
+        $ dconf read /org/gnome/desktop/wm/keybindings/switch-to-workspace-left
+  tags:
+    - keyboard_shortcuts
+    - info
