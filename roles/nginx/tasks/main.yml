@@ -1,0 +1,99 @@
+- name: Ensure directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ nginx_host_config_path }}"
+    - "{{ nginx_host_logs_path }}"
+    - "{{ nginx_host_ssl_path }}"
+
+- name: Configure Nginx settings
+  set_fact:
+    nginx_image: "nginx:stable-alpine"
+    nginx_cfg_dir: "{{ role_path }}/template/nginx.conf.j2"
+    nginx_container_name: "{{ nginx_container_name }}"
+    nginx_host_config_path: "{{ nginx_host_config_path }}"
+    nginx_host_logs_path: "{{ nginx_host_logs_path }}"
+    nginx_host_ssl_path: "{{ nginx_host_ssl_path }}"
+    nginx_ports: "{{ nginx_ports }}"
+
+- name: Copy Nginx configuration
+  ansible.builtin.template:
+    src: "{{ nginx_cfg_dir }}"
+    dest: "{{ nginx_host_config_path }}/nginx.conf"
+    mode: '0644'
+  register: nginx_config_copy
+
+- name: Validate Nginx configuration when deployed
+  ansible.builtin.command:
+    cmd: "docker exec {{ nginx_container_name }} nginx -t"
+  when: nginx_config_copy.changed
+  register: nginx_config
+
+- name: Copy SSL certificates
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ nginx_host_ssl_path }}/{{ item.dest }}"
+    mode: '0600'
+  loop:
+    - { src: 'ssl/cert.pem', dest: 'cert.pem' }
+    - { src: 'ssl/key.pem', dest: 'key.pem' }
+  when: ssl_enabled | default(false)
+
+- name: Pull Nginx image
+  community.docker.docker_image:
+    name: "{{ nginx_image }}"
+    source: pull
+    force_source: true
+  register: nginx_pull
+
+- name: Remove existing Nginx container
+  community.docker.docker_container:
+    name: "{{ nginx_container_name }}"
+    state: absent
+    force_kill: true
+  when: nginx_config.changed or nginx_pull.changed
+
+- name: Deploy Nginx container
+  community.docker.docker_container:
+    name: "{{ nginx_container_name }}"
+    image: "{{ nginx_image }}"
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ bridge_network_name }}"
+    ports: "{{ nginx_ports }}"
+    volumes:
+      - "{{ nginx_host_config_path }}/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "{{ nginx_host_logs_path }}:/var/log/nginx"
+      - "{{ nginx_host_ssl_path }}:/etc/nginx/ssl:ro"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    log_driver: "json-file"
+    log_options:
+      max-size: "100m"
+      max-file: "3"
+  register: nginx_container
+
+- name: Wait for Nginx to be healthy
+  ansible.builtin.wait_for:
+    host: localhost
+    port: 80
+    timeout: 30
+  when: nginx_container.changed
+
+- name: Verify Nginx status
+  ansible.builtin.uri:
+    url: "http://localhost/healthz"
+    method: GET
+    return_content: yes
+    status_code: 200
+  register: health_check
+  retries: 5
+  delay: 10
+  until: health_check.status == 200

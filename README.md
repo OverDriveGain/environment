@@ -24,14 +24,36 @@ Available commands:
 For the desktop in Berlin this mounts the 1tb free to `/mnt/1tb`.
 
 ## Available utility tasks
-### add-main-ssh-host:
+### ssh-client:
 Adds entry to `~/.ssh/config` to connect to host defined in `inventory.ini`
 
 **Run using**: ./ansible.sh -l desktop -t ssh-client
 
-### Cloud:
-1. Kaxtus: ``
+## Cloud:
+### docker:
+Install docker on host 
+
+**Run using**: `./ansible.sh -l cloud -t docker`
+
+### bridge:
+Creates a docker bridge named in `inventory.ini`
+
+**Run using**: `./ansible.sh -l cloud -t bridge`
+
+### nginx:
+Creates an nginx with config as in template
+
+**Run using**: `./ansible.sh -l cloud -t docker,bridge,nginx`
 
 ## Infrastructre:
 1. Kaxtus.com, kaxtus.de, quotomate, zaboub, reiddt, gulfrotables: godaddy: godaddy username 224581117
-2. 
+
+
+# ToDo:
+websites:
+quotomate,
+kaxtus.com
+iphone,
+gaspi,
+aat,
+sparescrew,

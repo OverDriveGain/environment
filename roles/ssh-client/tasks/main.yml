@@ -17,7 +17,7 @@
     - "Host {{ ssh_client_config_host }}"
     - "    HostName {{ host_name }}"
     - "    Hostname {{ host_ip }}"
-    - "    User ubuntu"
+    - "    User {{ host_username }}"
     - "    ForwardAgent yes"
   register: ssh_config_result
 

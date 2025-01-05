@@ -1,10 +1,20 @@
 - name: Cloud Server Playbook
   hosts: cloud
-  become: yes
+  become: no
   roles:
-    - role: kaxtus
+    - role: docker
       tags:
-        - 'kaxtus'
+        - 'docker'
+    - role: bridge
+      tags:
+        - 'bridge'
+    - role: websites
+      tags:
+        - 'websites'
+    - role: nginx
+      become: yes
+      tags:
+        - 'nginx'
 
 - name: Desktop (Berlin) Playbook
   become: yes
@@ -20,9 +30,6 @@
     - role: commands
       tags:
         - 'commands'
-    - role: keyboard-shortcuts
-      tags:
-        - 'keyboard-shortcuts'
     - role: ssh-client
       tags:
         - 'ssh-client'
