@@ -1,7 +1,7 @@
 local_host_dict : {
   "berlin": {
     "username": "manar",
-    "port": "10026",
+    "port": "10022",
     "ssh_key_dir": "/home/manar/.ssh/id_rsa",
     "ssh_pub_key_dir": "/home/manar/.ssh/id_rsa.pub",
   }
