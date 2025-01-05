@@ -45,6 +45,13 @@ Creates an nginx with config as in template
 
 **Run using**: `./ansible.sh -l cloud -t docker,bridge,nginx`
 
+### fresh:
+For freshly installed ubuntu, installs zsh also.
+
+**Run using**: `./ansible.sh -l cloud -t fresh`
+
+
+
 ## Infrastructre:
 1. Kaxtus.com, kaxtus.de, quotomate, zaboub, reiddt, gulfrotables: godaddy: godaddy username 224581117
 

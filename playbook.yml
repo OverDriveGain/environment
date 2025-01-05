@@ -3,6 +3,7 @@
   become: no
   roles:
     - role: docker
+      become: yes
       tags:
         - 'docker'
     - role: bridge
@@ -15,7 +16,10 @@
       become: yes
       tags:
         - 'nginx'
-
+    - role: fresh
+      become: yes
+      tags:
+        - 'fresh'
 - name: Desktop (Berlin) Playbook
   become: yes
   hosts: desktop

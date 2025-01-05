@@ -1,0 +1,103 @@
+# roles/cloud/tasks/system_packages.yml
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600  # Update cache if older than 1 hour
+  tags: ['cloud-system']
+
+- name: Install essential system packages
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - python3-pip
+      - python3-dev
+      - python3-setuptools
+      - git
+      - gnupg
+      - lsb-release
+    state: present
+  tags: ['cloud-system']
+
+- name: Install additional development tools
+  ansible.builtin.apt:
+    name:
+      - vim
+      - htop
+      - net-tools
+      - unzip
+      - wget
+      - jq
+      - zsh
+    state: present
+  tags: ['cloud-system']
+
+- name: Check if Oh My Zsh is installed
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.oh-my-zsh"
+  register: oh_my_zsh_installed
+  tags: ['cloud-system']
+
+- name: Install Oh My Zsh
+  ansible.builtin.shell: |
+    curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh
+  args:
+    creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
+  when: not oh_my_zsh_installed.stat.exists
+  tags: ['cloud-system']
+
+- name: Set Zsh as default shell
+  ansible.builtin.user:
+    name: "{{ ansible_env.USER }}"
+    shell: /bin/zsh
+  become: true
+  tags: ['cloud-system']
+
+- name: Install Zsh plugins
+  ansible.builtin.git:
+    repo: "{{ item.repo }}"
+    dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/plugins/{{ item.name }}"
+  loop:
+    - { name: 'zsh-autosuggestions', repo: 'https://github.com/zsh-users/zsh-autosuggestions.git' }
+    - { name: 'zsh-syntax-highlighting', repo: 'https://github.com/zsh-users/zsh-syntax-highlighting.git' }
+  when: not oh_my_zsh_installed.stat.exists
+  tags: ['cloud-system']
+
+- name: Configure Zsh plugins
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    regexp: '^plugins='
+    line: 'plugins=(git docker docker-compose zsh-autosuggestions zsh-syntax-highlighting)'
+  tags: ['cloud-system']
+
+- name: Display Zsh setup completion message
+  ansible.builtin.debug:
+    msg: |
+      Zsh and Oh My Zsh have been installed and configured with:
+      - Default shell changed to Zsh
+      - Oh My Zsh installed
+      - Added plugins: zsh-autosuggestions, zsh-syntax-highlighting
+      
+      You may need to log out and back in for shell change to take effect.
+  tags: ['cloud-system']
+
+- name: Configure SSH client for agent forwarding
+  ansible.builtin.blockinfile:
+    path: "{{ host_username }}/.ssh/config"
+    create: true
+    mode: '0600'
+    owner: "{{ host_username }}"
+    group: "{{ host_username }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - SSH AGENT FORWARDING"
+    block: |
+      Host *
+        ForwardAgent yes
+        AddKeysToAgent yes
+      
+      Host github.com
+        ForwardAgent yes
+        User git
