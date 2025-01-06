@@ -73,6 +73,13 @@
     regexp: '^plugins='
     line: 'plugins=(git docker docker-compose zsh-autosuggestions zsh-syntax-highlighting)'
   tags: ['cloud-system']
+  register: zsh_plugins_result
+  ignore_errors: yes
+
+- name: Notify user if Zsh plugin configuration fails
+  ansible.builtin.fail:
+    msg: "Expected failure. Please log in and out from the server with SSH to apply the changes."
+  when: zsh_plugins_result.failed
 
 - name: Display Zsh setup completion message
   ansible.builtin.debug:

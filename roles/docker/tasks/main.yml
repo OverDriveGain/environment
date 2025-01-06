@@ -1,6 +1,71 @@
+- name: Check if Docker is installed
+  ansible.builtin.command: docker --version
+  register: docker_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Debug Docker version if installed
+  ansible.builtin.debug:
+    msg: "No need to install Docker. Currently installed version is: {{ docker_check.stdout }}"
+  when: docker_check.rc == 0
+
 - name: Install Docker if not installed
   block:
     # ... previous Docker installation tasks ...
+    - name: Set os release *fix for mint wilma only
+      shell: '. /etc/os-release && echo $VERSION_CODENAME'
+      register: os_version_codename
+
+    - name: Set VARIABLE based on OS for above function version
+      set_fact:
+        LSB_RELEASE: "{{ 'noble' if os_version_codename.stdout == 'wilma' else os_version_codename.stdout }}"
+    - name: Debug the VARIABLE
+      debug:
+        msg: "The value of LSB_RELEASE is {{ LSB_RELEASE }}"
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install dependencies for Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+        validate_certs: no
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ LSB_RELEASE }} stable"
+        state: present
+
+    - name: Remove conflicting containerd packages
+      apt:
+        name:
+          - containerd
+          - containerd.io
+        state: absent
+      ignore_errors: yes
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
 
     - name: Create docker group if it doesn't exist
       ansible.builtin.group:
@@ -41,9 +106,7 @@
       become: yes
 
     - name: Force group membership update without logout
-      ansible.builtin.shell: |
-        sudo chmod 666 /var/run/docker.sock
-        newgrp docker
+      ansible.builtin.shell: sudo chmod 666 /var/run/docker.sock
       become: yes
 
     - name: Reset SSH connection to apply new group

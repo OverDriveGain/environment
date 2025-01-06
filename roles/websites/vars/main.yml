@@ -15,3 +15,4 @@ websites:
       bin_dir: '.output/public'
       in_port: 80
       ex_port: 86
+      app_js_dir: 'formserver'
