@@ -42,13 +42,14 @@
   register: oh_my_zsh_installed
   tags: ['cloud-system']
 
+
 - name: Install Oh My Zsh
-  ansible.builtin.shell: |
-    curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh
+  become: no
+  shell: |
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
   args:
-    creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
+    executable: /bin/zsh
   when: not oh_my_zsh_installed.stat.exists
-  tags: ['cloud-system']
 
 - name: Set Zsh as default shell
   ansible.builtin.user:
@@ -80,6 +81,18 @@
   ansible.builtin.fail:
     msg: "Expected failure. Please log in and out from the server with SSH to apply the changes."
   when: zsh_plugins_result.failed
+
+- name: Configure Zsh base settings
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    create: true
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - ZSH BASE CONFIGURATION"
+    block: |
+      export ZSH="$HOME/.oh-my-zsh"
+      ZSH_THEME="robbyrussell"
+      plugins=(git)
+      source $ZSH/oh-my-zsh.sh
+      PROMPT='%B%F{yellow}Remote %F{green}$(hostname -I | awk "{print \$1}")%f %F{cyan}%~%f '
 
 - name: Display Zsh setup completion message
   ansible.builtin.debug:
