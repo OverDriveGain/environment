@@ -20,6 +20,10 @@
       become: yes
       tags:
         - 'fresh'
+    - role: quotomatedb
+      become: yes
+      tags:
+        - 'quotomatedb'
 - name: Desktop (Berlin) Playbook
   become: yes
   hosts: desktop

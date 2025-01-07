@@ -1,0 +1,119 @@
+- name: Setup PostgreSQL in Docker
+  set_fact:
+    postgres_version: "12"
+    postgres_container_name: postgres-db
+    postgres_data_dir: /var/lib/postgresql/data
+    postgres_host_config_dir: /etc/postgresql/custom
+    postgres_network_mode: "host"
+    postgres_users:
+      - username: aait
+        password: manar
+      - username: amin
+        password: amin333
+- name: Install required packages
+  apt:
+    name:
+      - docker.io
+      - python3-docker
+      - python3-psycopg2
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Create PostgreSQL config directory
+  file:
+    path: "{{ postgres_host_config_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "999"
+    group: "999"
+  become: yes
+
+- name: Create PostgreSQL data directory
+  file:
+    path: "{{ postgres_data_dir }}"
+    state: directory
+    mode: '0700'
+    owner: "999"
+    group: "999"
+  become: yes
+
+- name: Create pg_hba.conf
+  copy:
+    dest: "{{ postgres_host_config_dir }}/pg_hba.conf"
+    content: |
+      # TYPE  DATABASE        USER            ADDRESS                 METHOD
+      
+      # "local" is for Unix domain socket connections only
+      local   all             all                                     trust
+      
+      # IPv4 local connections:
+      host    all             all             127.0.0.1/32           md5
+      
+      # IPv6 local connections:
+      host    all             all             ::1/128                md5
+      
+      # Allow all IPv4 connections
+      host    all             all             0.0.0.0/0              md5
+      
+      # Allow all IPv6 connections
+      host    all             all             ::/0                   md5
+    mode: '0600'
+    owner: "999"
+    group: "999"
+  become: yes
+
+- name: Create postgresql.conf
+  copy:
+    dest: "{{ postgres_host_config_dir }}/postgresql.conf"
+    content: |
+      listen_addresses = '*'
+      max_connections = 100
+      shared_buffers = 128MB
+      dynamic_shared_memory_type = posix
+      max_wal_size = 1GB
+      min_wal_size = 80MB
+      log_timezone = 'UTC'
+      datestyle = 'iso, mdy'
+      timezone = 'UTC'
+      lc_messages = 'en_US.utf8'
+      lc_monetary = 'en_US.utf8'
+      lc_numeric = 'en_US.utf8'
+      lc_time = 'en_US.utf8'
+      default_text_search_config = 'pg_catalog.english'
+    mode: '0600'
+    owner: "999"
+    group: "999"
+  become: yes
+
+- name: Pull PostgreSQL Docker image
+  docker_image:
+    name: "postgres:{{ postgres_version }}"
+    source: pull
+    force_source: yes
+  become: yes
+
+- name: Create PostgreSQL container
+  docker_container:
+    name: "{{ postgres_container_name }}"
+    image: "postgres:{{ postgres_version }}"
+    state: started
+    recreate: yes
+    network_mode: "{{ postgres_network_mode }}"
+    env:
+      POSTGRES_PASSWORD: "{{ postgres_users[0].password }}"
+      POSTGRES_USER: "{{ postgres_users[0].username }}"
+    volumes:
+      - "{{ postgres_data_dir }}:/var/lib/postgresql/data:rw"
+      - "{{ postgres_host_config_dir }}/postgresql.conf:/etc/postgresql/postgresql.conf:ro"
+      - "{{ postgres_host_config_dir }}/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro"
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
+    restart_policy: always
+  become: yes
+
+- name: Wait for PostgreSQL to be ready
+  wait_for:
+    host: localhost
+    port: 5432
+    timeout: 60
+    delay: 10
