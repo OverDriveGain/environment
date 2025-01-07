@@ -26,16 +26,6 @@
   register: nginx_config
 
 
-- name: Copy SSL certificates
-  ansible.builtin.copy:
-    src: "{{ item.src }}"
-    dest: "{{ nginx_host_ssl_path }}/{{ item.dest }}"
-    mode: '0600'
-  loop:
-    - { src: 'ssl/cert.pem', dest: 'cert.pem' }
-    - { src: 'ssl/key.pem', dest: 'key.pem' }
-  when: ssl_enabled | default(false)
-
 - name: Pull Nginx image
   community.docker.docker_image:
     name: "{{ nginx_image }}"

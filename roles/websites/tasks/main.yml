@@ -61,3 +61,6 @@
   vars:
     website: "{{ item.path | basename | regex_replace('\\.yml$', '') }}"
 
+- name: Include SSL tasks
+  include_tasks: ssl.yml
+  when: websites | length > 0  # Only include if there are websites

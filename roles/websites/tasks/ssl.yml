@@ -1,0 +1,99 @@
+- name: Install and configure SSL certificates
+  set_fact:
+    certbot_auto_renew: yes
+    lets_encrypt_staging: no
+
+- name: Install required packages
+  apt:
+    name:
+      - certbot
+      - python3-certbot
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Create SSL directories for each website in mounted directory
+  file:
+    path: "{{ nginx_host_ssl_path }}/{{ item.key }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ websites | dict2items }}"
+  when: item.value.ssl_enabled | default(false)
+  become: yes
+
+- name: Create directory for certificate renewal hooks
+  file:
+    path: /etc/letsencrypt/renewal-hooks/{{ item }}
+    state: directory
+    mode: '0755'
+  become: yes
+  loop:
+    - pre
+    - post
+    - deploy
+
+- name: Generate certificates for each website
+  command: >
+    certbot certonly --standalone
+    --email {{ item.value.ssl_email }}
+    {% for domain in item.value.domains %}
+    -d {{ domain }}
+    {% endfor %}
+    --agree-tos
+    --non-interactive
+    {% if lets_encrypt_staging %}
+    --staging
+    {% endif %}
+  args:
+    creates: "/etc/letsencrypt/live/{{ item.value.domains[0] }}/fullchain.pem"
+  become: yes
+  loop: "{{ websites | dict2items }}"
+  when: item.value.ssl_enabled | default(false)
+  register: cert_generation
+
+- name: Make certificates readable
+  file:
+    path: "/etc/letsencrypt"
+    mode: "0755"
+    recurse: yes
+  become: yes
+
+- name: Copy fullchain.pem certificates
+  copy:
+    src: "/etc/letsencrypt/live/{{ item.value.domains[0] }}/fullchain.pem"
+    dest: "{{ nginx_host_ssl_path }}/{{ item.key }}/cert.pem"
+    remote_src: yes
+    mode: "0644"
+  loop: "{{ websites | dict2items }}"
+  become: yes
+  when: item.value.ssl_enabled | default(false)
+
+- name: Copy privkey.pem certificates
+  copy:
+    src: "/etc/letsencrypt/live/{{ item.value.domains[0] }}/privkey.pem"
+    dest: "{{ nginx_host_ssl_path }}/{{ item.key }}/key.pem"
+    remote_src: yes
+    mode: "0644"
+  loop: "{{ websites | dict2items }}"
+  when: item.value.ssl_enabled | default(false)
+  become: yes
+
+- name: Set up automatic renewal
+  cron:
+    name: "Certbot Renewal"
+    minute: "0"
+    hour: "0"
+    day: "1"
+    job: "sudo certbot renew --quiet --no-self-upgrade --preferred-challenges http-01 && cp /etc/letsencrypt/live/*/fullchain.pem {{ nginx_host_ssl_path }}/*/cert.pem && cp /etc/letsencrypt/live/*/privkey.pem {{ nginx_host_ssl_path }}/*/key.pem && docker compose restart nginx"
+  when: certbot_auto_renew
+
+- name: Verify certificates
+  command: >
+    certbot certificates
+  become: yes
+  register: cert_status
+  changed_when: false
+
+- name: Display certificate status
+  debug:
+    var: cert_status.stdout_lines

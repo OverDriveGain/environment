@@ -5,6 +5,8 @@ websites:
       docker_image_name: 'kaxtus-website'
       root_name: 'kaxtus-website'
       bin_dir: 'dist'
+      ssl_enabled: true
+      ssl_email: "admin@kaxtus.com"
   gaspi:
       domains: ['gaspi.aero', 'www.gaspi.aero']
       repo_url: 'git@github.com:OverDriveGain/gaspi.git'
@@ -12,3 +14,5 @@ websites:
       root_name: 'gaspi-website'
       port: 10081
       app_js_dir: 'formserver'
+      ssl_enabled: true
+      ssl_email: "admin@gaspi.aero"
