@@ -3,10 +3,8 @@
     docker_image_name: "{{ websites[website].docker_image_name }}"
     repo_url: "{{ websites[website].repo_url }}"
     root_name: "{{ websites[website].root_name }}"
-    in_port: "{{ websites[website].in_port }}"
-    ex_port: "{{ websites[website].ex_port }}"
+    port: "{{ websites[website].port }}"
     root_dir: "{{ websites_cloud_dir }}/{{ websites[website].root_name }}"
-    bin_dir: "{{ websites_cloud_dir }}/{{ websites[website].root_name }}/{{ websites[website].bin_dir }}"
     app_js_dir: "{{ websites[website].app_js_dir }}"
 - name: Ensure storage_meta directory exists
   ansible.builtin.file:
@@ -30,13 +28,13 @@
   community.docker.docker_container:
     name: "{{ docker_image_name }}"
     image: "bitnami/node:18"
-    ports:
-      - "{{ ex_port }}:{{ in_port }}"
     volumes:
       - "{{ root_dir }}:/app"
     env:
       NODE_ENV: "production"
+      API_PORT: "{{ port }}"
     working_dir: "/app/{{ app_js_dir }}"
+    network_mode: host
     command: >
       /bin/bash -c "
       npm install &&
@@ -45,7 +43,7 @@
 
 - name: Wait for services to start
   ansible.builtin.wait_for:
-    port: "{{ ex_port }}"
+    port: "{{ port }}"
     timeout: 30
 
 - name: Print completion message

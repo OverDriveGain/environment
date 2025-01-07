@@ -5,14 +5,10 @@ websites:
       docker_image_name: 'kaxtus-website'
       root_name: 'kaxtus-website'
       bin_dir: 'dist'
-      in_port: 80
-      ex_port: 85
   gaspi:
       domains: ['gaspi.aero', 'www.gaspi.aero']
       repo_url: 'git@github.com:OverDriveGain/gaspi.git'
       docker_image_name: 'gaspi-website'
       root_name: 'gaspi-website'
-      bin_dir: '.output/public'
-      in_port: 80
-      ex_port: 86
+      port: 10081
       app_js_dir: 'formserver'

@@ -56,15 +56,14 @@
     image: "{{ nginx_image }}"
     state: started
     restart_policy: unless-stopped
-    networks:
-      - name: "{{ bridge_network_name }}"
-    ports: "{{ nginx_ports }}"
+    network_mode: host
     volumes:
       - "{{ nginx_host_config_path }}/nginx.conf:/etc/nginx/nginx.conf:ro"
       - "{{ nginx_host_logs_path }}:/var/log/nginx"
       - "{{ nginx_host_ssl_path }}:/etc/nginx/ssl:ro"
+      - "{{ websites_dist_dir }}:{{ websites_dist_dir }}"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/healthz || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:10079/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -84,7 +83,7 @@
 
 - name: Verify Nginx status
   ansible.builtin.uri:
-    url: "http://localhost/healthz"
+    url: "http://localhost:10079/healthz"
     method: GET
     return_content: yes
     status_code: 200
