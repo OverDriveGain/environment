@@ -40,6 +40,7 @@
       npm install &&
       node app.js"
     state: started
+    restart_policy: always
 
 - name: Wait for services to start
   ansible.builtin.wait_for:
