@@ -29,11 +29,9 @@ Available commands:
 
 For the desktop in Berlin this mounts the 1tb free to `/mnt/1tb`.
 
-## Available utility tasks
-
 ### ssh-client:
 
-Adds entry to `~/.ssh/config` to connect to host defined in `inventory.ini`
+Adds entry to `~/.ssh/config` to connect to main cloud host defined in `inventory.ini`
 
 **Run using**: ./ansible.sh -l desktop -t ssh-client
 
@@ -55,13 +53,27 @@ Creates a docker bridge named in `inventory.ini`
 
 Creates an nginx with config as in template
 
-**Run using**: `./ansible.sh -l cloud -t docker,bridge,nginx`
+**Run using**: `./ansible.sh -l cloud -t docker,nginx`
 
 ### fresh:
 
 For freshly installed ubuntu, installs zsh also.
 
 **Run using**: `./ansible.sh -l cloud -t fresh`
+
+### quotomatedb
+
+Install postgresql, configures it, and can migrate db from old host to new host:
+
+1. Setup: `./ansible.sh -l cloud -t quotomatedb:setup`
+2. Configure: `./ansible.sh -l cloud -t quotomatedb:configure`
+3. Migrate: `./ansible.sh -l cloud -t quotomatedb:migrate_db`
+
+### websites
+
+Install websites available in `/roles/websites/vars/main.yml`. Also, installs ssl. NGINX uses this for ssl serving
+
+**Run using**: `./ansible.sh -l cloud -t websites`
 
 ## Infrastructre:
 
