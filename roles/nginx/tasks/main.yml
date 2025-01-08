@@ -11,7 +11,7 @@
 - name: Configure Nginx settings
   set_fact:
     nginx_image: "nginx:stable-alpine"
-    nginx_cfg_dir: "{{ role_path }}/template/nginx.conf.j2"
+    nginx_cfg_dir: templates/nginx.conf.j2
     nginx_container_name: "{{ nginx_container_name }}"
     nginx_host_config_path: "{{ nginx_host_config_path }}"
     nginx_host_logs_path: "{{ nginx_host_logs_path }}"
