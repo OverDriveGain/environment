@@ -1,13 +1,3 @@
-- name: Backup and restore PostgreSQL database
-  set_fact:
-    db_name: aait
-    backup_file: /tmp/aait_backup.dump
-    pg_user: amin  # Replace with your actual PostgreSQL username
-    pg_password: amin333  # Replace with your actual PostgreSQL password
-    cloud_host: cloud  # Define the cloud host in your inventory
-    postgres_container_name: postgres-db
-    postgres_data_dir: /home/
-
 - name: Run pg_dump to backup the database
   command:
     cmd: >
@@ -30,20 +20,20 @@
   become: yes
 
 - name: Copy the backup file directly into PostgreSQL container
-  shell: docker cp {{ backup_file }} "{{ postgres_container_name }}":"{{ postgres_data_dir }}"/aait_backup.dump
+  shell: docker cp {{ backup_file }} "{{ postgres_container_name }}":"{{ db_dump_data_dir }}"
   become: yes
 
 - name: Set proper ownership and permissions in container
   shell: |
-    docker exec "{{ postgres_container_name }}" chown postgres:postgres "{{ postgres_data_dir }}"/aait_backup.dump
-    docker exec "{{ postgres_container_name }}" chmod 644 "{{ postgres_data_dir }}"/aait_backup.dump
+    docker exec "{{ postgres_container_name }}" chown postgres:postgres "{{ db_dump_data_dir }}"
+    docker exec "{{ postgres_container_name }}" chmod 644 "{{ db_dump_data_dir }}"
   become: yes
 #
 #- name: Restore the database inside the Docker container
 #  docker_container:
 #    name: "{{ postgres_container_name }}"  # The name of the container
 #    command: >
-#      pg_restore -U "{{ pg_user }}" -d "{{ db_name }}" -v "{{ postgres_data_dir }}aait_backup.dump"
+#      pg_restore -U "{{ pg_user }}" -d "{{ db_name }}" -v "{{ db_dump_data_dir }}aait_backup.dump"
 #    state: started
 #  become: yes
 

@@ -1,0 +1,10 @@
+postgres_users:
+  - username: ""
+    password: ""
+  - username: ""
+    password: ""
+psql_login_user: postgres  # Use the default postgres superuser
+psql_login_password: pass
+
+pg_user: "" # The user name in postgres in the old host to migrate from
+pg_password: "" # The password in postgres in the old host to migrate from

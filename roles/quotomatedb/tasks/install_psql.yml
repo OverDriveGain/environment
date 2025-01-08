@@ -1,15 +1,3 @@
-- name: Setup PostgreSQL in Docker
-  set_fact:
-    postgres_version: "12"
-    postgres_container_name: postgres-db
-    postgres_data_dir: /var/lib/postgresql/data
-    postgres_host_config_dir: /etc/postgresql/custom
-    postgres_network_mode: "host"
-    postgres_users:
-      - username: aait
-        password: manar
-      - username: amin
-        password: amin333
 - name: Install required packages
   apt:
     name:
@@ -99,7 +87,7 @@
     image: "postgres:{{ postgres_version }}"
     state: started
     recreate: yes
-    network_mode: "{{ postgres_network_mode }}"
+    network_mode: host
     env:
       POSTGRES_PASSWORD: "{{ postgres_users[0].password }}"
       POSTGRES_USER: "{{ postgres_users[0].username }}"
@@ -114,6 +102,6 @@
 - name: Wait for PostgreSQL to be ready
   wait_for:
     host: localhost
-    port: 5432
+    port: "{{ postgres_port }}"
     timeout: 60
     delay: 10

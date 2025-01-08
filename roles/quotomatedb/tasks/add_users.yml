@@ -1,20 +1,12 @@
-- name: Setup PostgreSQL in Docker
-  set_fact:
-    postgres_users:
-      - username: aait
-        password: manar
-      - username: amin
-        password: amin333
-
 - name: Create initial admin PostgreSQL user
   community.postgresql.postgresql_user:
     name: "{{ postgres_users[0].username }}"
     password: "{{ postgres_users[0].password }}"
     state: present
     login_host: "127.0.0.1"
-    login_user: postgres  # Use the default postgres superuser
-    login_password: manar
-    port: 5432
+    login_user: "{{ psql_login_user }}"  # Use the default postgres superuser
+    login_password: "{{ psql_login_password }}"
+    port: "{{ postgres_port }}"
 
 - name: Create additional PostgreSQL users
   community.postgresql.postgresql_user:
@@ -22,9 +14,9 @@
     password: "{{ item.password }}"
     state: present
     login_host: "127.0.0.1"
-    login_user: postgres
-    login_password: manar
-    port: 5432
+    login_user: "{{ psql_login_user }}"  # Use the default postgres superuser
+    login_password: "{{ psql_login_password }}"
+    port: "{{ postgres_port }}"
   loop: "{{ postgres_users[1:] }}"
   when: postgres_users | length > 1
   register: create_user_result
