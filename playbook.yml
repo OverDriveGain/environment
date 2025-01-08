@@ -24,6 +24,10 @@
       become: yes
       tags:
         - 'quotomatedb'
+    - role: openvpn
+      become: yes
+      tags:
+        - 'openvpn'
 - name: Desktop (Berlin) Playbook
   become: yes
   hosts: desktop

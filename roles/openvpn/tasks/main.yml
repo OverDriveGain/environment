@@ -1,0 +1,68 @@
+- name: Install OpenVPN and dependencies
+  ansible.builtin.apt:
+    name:
+      - openvpn
+      - easy-rsa
+    state: present
+
+- name: Create OpenVPN directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0700'
+  loop:
+    - /etc/openvpn/server
+    - /etc/openvpn/clients
+    - /etc/openvpn/easy-rsa
+
+- name: Copy easy-rsa files
+  ansible.builtin.copy:
+    src: /usr/share/easy-rsa/
+    dest: /etc/openvpn/easy-rsa/
+    remote_src: yes
+
+- name: Initialize PKI
+  ansible.builtin.shell:
+    cmd: |
+      cd /etc/openvpn/easy-rsa
+      ./easyrsa init-pki
+      echo 'yes' | ./easyrsa build-ca nopass
+      echo 'yes' | ./easyrsa build-server-full server nopass
+      ./easyrsa gen-dh
+      openvpn --genkey secret /etc/openvpn/server/ta.key
+  args:
+    creates: /etc/openvpn/easy-rsa/pki/ca.crt
+
+- name: Generate OpenVPN server config
+  ansible.builtin.template:
+    src: templates/server.conf.j2
+    dest: /etc/openvpn/server/server.conf
+  notify: restart openvpn
+
+- name: restart openvpn
+  ansible.builtin.service:
+    name: openvpn@server
+    state: restarted
+    
+- name: Enable IP forwarding
+  ansible.builtin.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Create new client certificate
+  ansible.builtin.shell:
+    cmd: |
+      cd /etc/openvpn/easy-rsa
+      echo 'yes' | ./easyrsa build-client-full {{ client_name }} nopass
+  args:
+    creates: /etc/openvpn/easy-rsa/pki/issued/{{ client_name }}.crt
+  when: client_name is defined
+
+- name: Generate client config
+  ansible.builtin.template:
+    src: templates/client.conf.j2
+    dest: "/etc/openvpn/clients/{{ client_name }}.ovpn"
+  when: client_name is defined
