@@ -70,6 +70,12 @@
       
       [Install]
       WantedBy=multi-user.target
+  register: service_file
+
+- name: Reload systemd daemon if service file was changed
+  systemd:
+    daemon_reload: yes
+  when: service_file.changed
 
 - name: Enable and start the autossh bridge service
   systemd:
