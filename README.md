@@ -14,7 +14,7 @@ Any host is reachable from anywhere using domain name **kaxtus.com**.
 Available configurations are in `jumphost/vars/`.
 
 1. **Run using your desired key in the configuration:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin"```
-2. **Run using for music server:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin_music"```
+2. **Run for music server port forwarding:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin_music"```
 ### Commands:
 
 Adds commands aliases to `~/.zshrc` or `~/.bashrc`.

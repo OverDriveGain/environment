@@ -45,3 +45,6 @@
     - role: ssh-client
       tags:
         - 'ssh-client'
+    - role: musdowlow
+      tags:
+        - 'musdowlow'

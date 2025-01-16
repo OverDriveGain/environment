@@ -39,13 +39,16 @@
     name: "{{ container_name }}"
     state: stopped
   ignore_errors: true
+  delegate_to: desktop
 
 - name: Create Docker volume
   docker_volume:
     name: leafplayer-storage
     state: present
+  delegate_to: desktop
 
 - name: Run Leafplayer container
+  delegate_to: desktop
   docker_container:
     name: "{{ container_name }}"
     image: paulschwoerer/leafplayer
@@ -63,6 +66,7 @@
   wait_for:
     port: "{{ port }}"
     delay: 10
+  delegate_to: desktop
 
 - name: Create admin user
   community.docker.docker_container_exec:
@@ -70,7 +74,9 @@
     command: node main.js users:add --username {{ admin_username }} --password {{ admin_password }}
   register: result
   ignore_errors: true
+  delegate_to: desktop
 
 - name: print result
   debug:
     var: result.stdout
+  delegate_to: desktop

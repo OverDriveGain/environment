@@ -8,11 +8,11 @@ local_host_dict : {
     "comments": "Normal jumphost to run on berlin desktop"
   },
   "berlin_music": {
-    "username": "manar.zaboub",
+    "username": "manar",
     "port": "10082", # ToDo this should be identical to websites/var/music
     "local_ssh_port": "10082", # ToDo this should be identical to websites/var/music
-    "ssh_key_dir": "/home/manar.zaboub/.ssh/id_rsa",
-    "ssh_pub_key_dir": "/home/manar.zaboub/.ssh/id_rsa.pub",
+    "ssh_key_dir": "/home/manar/.ssh/id_rsa",
+    "ssh_pub_key_dir": "/home/manar/.ssh/id_rsa.pub",
     "service_name": "ssh_jump_kaxtus_music",
     "comments": "Music jumphost to run on berlin desktop"
   },

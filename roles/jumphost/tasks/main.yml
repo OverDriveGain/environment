@@ -61,7 +61,7 @@
     dest: /etc/systemd/system/{{ jump_host_service_name }}.service
     content: |
       [Unit]
-      Description=Jump host service enable access to this host from {{ jump_host_name }} on port {{ ssh_port }} to local port 22
+      Description=Jump host service enable access to this host from {{ jump_host_name }} on port {{ ssh_port }} to local port {{ local_ssh_port }}
       After=network.target
       
       [Service]
