@@ -13,8 +13,8 @@ Any host is reachable from anywhere using domain name **kaxtus.com**.
 
 Available configurations are in `jumphost/vars/`.
 
-**Run using your desired key in the configuration:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin"```
-
+1. **Run using your desired key in the configuration:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin"```
+2. **Run using for music server:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin_music"```
 ### Commands:
 
 Adds commands aliases to `~/.zshrc` or `~/.bashrc`.
@@ -71,9 +71,13 @@ Install postgresql, configures it, and can migrate db from old host to new host:
 
 ### websites
 
-Install websites available in `/roles/websites/vars/main.yml`. Also, installs ssl. NGINX uses this for ssl serving
+Install websites available in `/roles/websites/vars/main.yml`. Also, installs ssl. NGINX uses this for ssl serving.
 
-**Run using**: `./ansible.sh -l cloud -t websites`
+There are two types of websites: Static as in kaxtus, and with nodejs server as in gaspi
+
+1. **Run using**: `./ansible.sh -l cloud -t websites`
+
+2. Or **Run using**: `./ansible.sh -l cloud -t websites -e "target_website=music"`
 
 ## Infrastructre:
 

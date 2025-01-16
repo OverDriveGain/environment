@@ -1,5 +1,5 @@
 - name: Cloud Server Playbook
-  hosts: cloud
+  hosts: all
   become: no
   roles:
     - role: docker

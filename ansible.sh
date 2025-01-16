@@ -4,7 +4,7 @@
 verbosity=""
 limit=""
 tags="jumphost"
-extra_vars=()
+declare -a extra_vars
 
 # Function to display help
 function display_help {
@@ -23,9 +23,19 @@ function display_help {
 while [[ $# -gt 0 ]]; do
   case $1 in
     -v) verbosity="-vvvv" ;;
-    -l) limit="$2"; shift ;;
-    -t) tags="$2"; shift ;;
-    -e) extra_vars+=("$2"); shift ;;
+    -l)
+      shift
+      limit="$1"
+      ;;
+    -t)
+      shift
+      tags="$1"
+      ;;
+    -e)
+      shift
+      extra_vars+=("--extra-vars")
+      extra_vars+=("$1")
+      ;;
     --help) display_help ;;
     *) echo "Invalid option: $1"; display_help ;;
   esac
@@ -39,11 +49,12 @@ if [ -z "$limit" ]; then
   exit 1
 fi
 
-# Construct the extra vars arguments
-extra_vars_string=""
-for var in "${extra_vars[@]}"; do
-  extra_vars_string+=" -e '$var'"
-done
+# Build the command array
+cmd=(ansible-playbook)
+[[ -n "$verbosity" ]] && cmd+=("$verbosity")
+cmd+=(-i inventory.ini playbook.yml --limit "$limit" --tags "$tags")
+[[ ${#extra_vars[@]} -gt 0 ]] && cmd+=("${extra_vars[@]}")
+cmd+=(--become-password-file password)
 
-# Run ansible-playbook with the provided or default arguments
-eval "ansible-playbook $verbosity -i inventory.ini playbook.yml --limit $limit --tags $tags$extra_vars_string --become-password-file password"
+# Execute the command
+"${cmd[@]}"

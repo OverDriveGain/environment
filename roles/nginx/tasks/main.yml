@@ -40,6 +40,24 @@
     force_kill: true
   when: nginx_config.changed or nginx_pull.changed
 
+- name: Fix permissions for Docker-mounted nginx files
+  block:
+    - name: Set correct ownership for nginx files
+      file:
+        path: "{{ websites_dist_dir }}"
+        owner: "101"  # nginx user in container
+        group: "101"  # nginx group in container
+        recurse: yes
+        mode: '0755'
+      become: yes
+
+    - name: Ensure website files are readable
+      file:
+        path: "{{ websites_dist_dir }}"
+        mode: '0755'
+        recurse: yes
+      become: yes
+
 - name: Deploy Nginx container
   community.docker.docker_container:
     name: "{{ nginx_container_name }}"

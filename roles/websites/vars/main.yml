@@ -16,3 +16,13 @@ websites:
       app_js_dir: 'formserver'
       ssl_enabled: true
       ssl_email: "admin@gaspi.aero"
+  music:
+      domains: ['music.kaxtus.com']
+      port: 10082
+      app_secret: supersecret
+      music_path: /home/manar.zaboub/Music
+      container_name: leafplayer
+      admin_username: admin
+      admin_password: supersecret
+      ssl_enabled: true
+      ssl_email: "admin@kaxtus.com"

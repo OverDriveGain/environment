@@ -51,7 +51,7 @@
   ansible.builtin.debug:
     msg: "GitHub connection test: {{ github_test.stderr if github_test.stderr is defined else github_test.stdout }}"
 
-- name: Include all website tasks
+- name: Include all website tasks or parse from -e parameter
   ansible.builtin.include_tasks:
     apply:
       tags: 'website'
@@ -60,7 +60,10 @@
   tags: 'website'
   vars:
     website: "{{ item.path | basename | regex_replace('\\.yml$', '') }}"
+  when: >
+    target_website is not defined or 
+    (target_website == (item.path | basename | regex_replace('\\.yml$', '')))
 
 - name: Include SSL tasks
-  include_tasks: ssl.yml
-  when: websites | length > 0  # Only include if there are websites
+  import_tasks: ssl.yml
+  tags: ["websites:ssl"]
