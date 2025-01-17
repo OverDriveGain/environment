@@ -20,9 +20,9 @@ websites:
       domains: ['music.kaxtus.com']
       port: 10082
       app_secret: supersecret
-      music_path: /mnt/tb/Music
       container_name: leafplayer
       admin_username: admin
       admin_password: supersecret
       ssl_enabled: true
       ssl_email: "admin@kaxtus.com"
+      users: ['manar', 'mike']

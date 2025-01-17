@@ -1,3 +1,7 @@
+- name: Set the facts
+  set_fact:
+    download_folder: "{{ music_path }}/{{ download_folder_name }}"
+
 - name: Pull Docker image
   docker_image:
     name: "{{ docker_image }}"
@@ -8,7 +12,7 @@
 
 - name: Create download directory
   file:
-    path: "{{ output_dir }}"
+    path: "{{ download_folder }}"
     state: directory
     mode: '0755'
 
@@ -28,7 +32,7 @@
     ports:
       - "{{ host_port }}:{{ app_port }}"
     volumes:
-      - "{{ output_dir }}:/app/downloads"
+      - "{{ download_folder }}:/app/downloads"
     env:
       PORT: "{{ app_port }}"
       OUTPUT_DIR: "/app/downloads"
