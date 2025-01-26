@@ -36,9 +36,6 @@
     - role: 1tbmount
       tags:
         - '1tbmount'
-    - role: jumphost
-      tags:
-        - 'jumphost'
     - role: commands
       tags:
         - 'commands'
@@ -48,3 +45,15 @@
     - role: musdowlow
       tags:
         - 'musdowlow'
+- name: Cloud and Desktop Setup
+  hosts: cloud,desktop
+  become: yes
+  handlers:
+    - name: restart haproxy
+      service:
+        name: haproxy
+        state: restarted
+  roles:
+    - role: jumphost
+      tags:
+        - 'jumphost'

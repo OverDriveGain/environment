@@ -1,0 +1,18 @@
+# Ensure haproxy is installed because forwarding is based on name:
+# Deprecated don't use this!
+- name: Install HAProxy
+  package:
+    name: haproxy
+    state: present
+- name: Backup original haproxy.cfg
+  copy:
+    src: /etc/haproxy/haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg.bak
+    remote_src: yes
+    force: no
+- name: Configure HAProxy
+  template:
+    src: templates/haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+  notify: restart haproxy
+

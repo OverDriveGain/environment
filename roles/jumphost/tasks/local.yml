@@ -1,0 +1,78 @@
+# Sets the jumphost for the host, each entry in inventory.ini desktop_jump_host_dict has configuration for different desktop for this to run
+# Set parameters in ansible.cfg
+- name: Set the port and username for localhost
+  set_fact:
+    user_pc_name: "{{ user_pc_name }}"
+    ssh_port: "{{ local_host_dict[user_pc_name].port }}"
+    username: "{{ local_host_dict[user_pc_name].username }}"
+    ssh_key_dir: "{{ local_host_dict[user_pc_name].ssh_key_dir }}"
+    ssh_pub_key_dir: "{{ local_host_dict[user_pc_name].ssh_pub_key_dir }}"
+    jump_host_service_name: "{{ local_host_dict[user_pc_name].service_name }}"
+    jump_host_name: "{{ remote_jump_host_name }}"
+    jump_host_username: "{{ remote_jump_host_username }}"
+    local_ssh_port: "{{ local_host_dict[user_pc_name].local_ssh_port | default(22) }}"
+- name: Check if host_name is defined in config
+  fail:
+    msg: "user_pc_name {{ user_pc_name }} is not defined in local_host_dict"
+  when: local_host_dict[user_pc_name] is not defined
+
+- name: Check if port is defined for user_pc_name
+  fail:
+    msg: "No port defined for user_pc_name: {{ user_pc_name }}"
+  when: local_host_dict[user_pc_name].port is not defined
+
+- name: Debugging variables
+  debug:
+    msg: "{{ local_host_dict }}"
+
+- name: Install autossh if not present
+  apt:
+    name: autossh
+    state: present
+
+- name: Check if the public key exists
+  stat:
+    path: "{{ ssh_pub_key_dir }}"
+  register: ssh_key_stat
+
+- name: Display message if public key exists
+  debug:
+    msg: "The public key already exists at {{ ssh_pub_key_dir }}"
+  when: ssh_key_stat.stat.exists
+
+- name: Fail and exit if public key does not exist
+  fail:
+    msg: "The public key {{ ssh_pub_key_dir }} does not exist. Use command: ssh-keygen -y -f {{ ssh_key_dir }} > {{ ssh_pub_key_dir }}."
+  when: not ssh_key_stat.stat.exists
+
+- name: Install OpenSSH server if not present
+  apt:
+    name: openssh-server
+    state: present
+
+- name: Ensure SSH service is running
+  service:
+    name: ssh
+    state: started
+    enabled: yes
+
+- name: Create the systemd service for autossh bridge
+  template:
+    src: templates/jump_host_service.j2
+    dest: /etc/systemd/system/{{ jump_host_service_name }}.service
+  register: service_file
+
+- name: Reload systemd daemon if service file was changed
+  systemd:
+    daemon_reload: yes
+  when: service_file.changed
+
+- name: Enable and start the autossh bridge service
+  systemd:
+    name: "{{ jump_host_service_name }}"
+    enabled: yes
+    state: started
+
+- name: Display SSH access message
+  debug:
+    msg: "We created a service /etc/systemd/system/{{ jump_host_service_name }}.service. Now you can access this PC from anywhere if you have the same ssh keys of [user_x] using command: ssh -p {{ ssh_port }} [user_x]@{{ jump_host_name }}"

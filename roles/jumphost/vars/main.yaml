@@ -7,6 +7,14 @@ local_host_dict : {
     "service_name": "ssh_jump_kaxtus",
     "comments": "Normal jumphost to run on berlin desktop"
   },
+  "laptop": {
+    "username": "manar.zaboub",
+    "port": "10024",
+    "ssh_key_dir": "/home/manar.zaboub/.ssh/id_rsa",
+    "ssh_pub_key_dir": "/home/manar.zaboub/.ssh/id_rsa.pub",
+    "service_name": "ssh_jump_kaxtus",
+    "comments": "Normal jumphost to run on laptop"
+  },
   "berlin_music": {
     "username": "manar",
     "port": "10082", # ToDo this should be identical to websites/var/music
