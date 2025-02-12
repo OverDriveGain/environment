@@ -3,6 +3,12 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/RiderDebugger/RiderRestoreDecompile/RestoreDecompileSetting/@EntryValue" value="false" type="bool" />
+    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+    <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="3" type="long" />
+  </component>
   <component name="CMakeProjectFlavorService">
     <option name="flavorId" value="CMakePlainProjectFlavor" />
   </component>
@@ -12,14 +18,11 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="215ef0db-5d3f-49f9-af97-41d315f2cad9" name="Changes" comment="restructure">
+    <list default="true" id="e263b157-f31d-49f7-aa73-4c1172e8d327" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/group_vars/cloud.yml" beforeDir="false" afterPath="$PROJECT_DIR$/group_vars/cloud.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inventory.ini" beforeDir="false" afterPath="$PROJECT_DIR$/inventory.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playbook.yml" beforeDir="false" afterPath="$PROJECT_DIR$/playbook.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/roles/jumphost/tasks/main.yml" beforeDir="false" afterPath="$PROJECT_DIR$/roles/jumphost/tasks/main.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/roles/jumphost/vars/main.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/roles/jumphost/vars/main.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/roles/websites/tasks/websites/music.yml" beforeDir="false" afterPath="$PROJECT_DIR$/roles/websites/tasks/websites/music.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/roles/nginx/templates/nginx.conf.j2" beforeDir="false" afterPath="$PROJECT_DIR$/roles/nginx/templates/nginx.conf.j2" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/roles/websites/vars/main.yml" beforeDir="false" afterPath="$PROJECT_DIR$/roles/websites/vars/main.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -34,107 +37,56 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 3
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 5
 }</component>
-  <component name="ProjectId" id="2qareKsHpdYRTpfHxYl0EyM2vPn" />
+  <component name="ProjectId" id="2rlYwW3xYZvBArWQoarYpL7lpKd" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/manar/Projects/musdowlow&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.RadMigrateCodeStyle": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/home/manar.zaboub/projects/environment/roles/websites/tasks/websites",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/roles/openvpn/templates" />
-      <recent name="$PROJECT_DIR$/roles/quotomatedb/tasks" />
-      <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/roles/nginx/template" />
-      <recent name="$PROJECT_DIR$/roles/nginx/tasks" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/roles/websites/tasks/websites" />
-      <recent name="$PROJECT_DIR$/roles/websites/vars" />
-      <recent name="$PROJECT_DIR$/roles/ngnix/template" />
-      <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/roles/bridge/tasks" />
+      <recent name="$PROJECT_DIR$/roles/jumphost/tasks" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="215ef0db-5d3f-49f9-af97-41d315f2cad9" name="Changes" comment="" />
-      <created>1734911620192</created>
+      <changelist id="e263b157-f31d-49f7-aa73-4c1172e8d327" name="Changes" comment="" />
+      <created>1737135367942</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1734911620192</updated>
-      <workItem from="1734911621351" duration="17891000" />
-      <workItem from="1734929939907" duration="1523000" />
-      <workItem from="1734956016730" duration="16915000" />
-      <workItem from="1734975419742" duration="1863000" />
-      <workItem from="1734984274024" duration="23981000" />
-      <workItem from="1735303028762" duration="5902000" />
-      <workItem from="1735454614490" duration="5204000" />
-      <workItem from="1735471631768" duration="14173000" />
-      <workItem from="1735506315646" duration="8049000" />
-      <workItem from="1735515133621" duration="5714000" />
-      <workItem from="1735817053139" duration="4000" />
-      <workItem from="1736013750280" duration="1268000" />
-      <workItem from="1736017159296" duration="552000" />
-      <workItem from="1736045777061" duration="2475000" />
-      <workItem from="1736048620422" duration="11877000" />
-      <workItem from="1736062514828" duration="18592000" />
-      <workItem from="1736081280816" duration="14410000" />
-      <workItem from="1736096942830" duration="5358000" />
-      <workItem from="1736107893776" duration="1883000" />
-      <workItem from="1736163086103" duration="15756000" />
-      <workItem from="1736196835352" duration="1548000" />
-      <workItem from="1736249519387" duration="18985000" />
-      <workItem from="1736272550017" duration="1778000" />
-      <workItem from="1736330190578" duration="10605000" />
-      <workItem from="1736629343095" duration="125000" />
-      <workItem from="1737036015554" duration="941000" />
-      <workItem from="1737059765735" duration="2432000" />
+      <updated>1737135367942</updated>
+      <workItem from="1737135369144" duration="3327000" />
+      <workItem from="1737206980357" duration="2440000" />
+      <workItem from="1737368452168" duration="135000" />
+      <workItem from="1737909398053" duration="2102000" />
+      <workItem from="1738075747853" duration="17000" />
+      <workItem from="1739135970010" duration="5627000" />
     </task>
-    <task id="LOCAL-00001" summary="restructure">
-      <option name="closed" value="true" />
-      <created>1734964263517</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1734964263517</updated>
-    </task>
-    <task id="LOCAL-00002" summary="restructure">
-      <option name="closed" value="true" />
-      <created>1736065758239</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1736065758239</updated>
-    </task>
-    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="restructure" />
-    <option name="LAST_COMMIT_MESSAGE" value="restructure" />
   </component>
 </project>

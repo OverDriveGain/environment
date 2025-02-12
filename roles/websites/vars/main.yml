@@ -26,3 +26,13 @@ websites:
       ssl_enabled: true
       ssl_email: "admin@kaxtus.com"
       users: ['manar', 'mike']
+  quotomate:
+      domains: [ 'quotomate.com', 'www.quotomate.com' ]
+      repo_url: 'git@github.com:OverDriveGain/quotomate-web.git'
+      docker_image_name: 'quotomate-website'
+      root_name: 'quotomate-website'
+      port: 10083
+      app_js_dir: 'backend'
+      ssl_enabled: true
+      ssl_email: "admin@quotomate.aero"
+      unsafe_eval: true

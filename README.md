@@ -54,7 +54,7 @@ Creates a docker bridge named in `inventory.ini`
 Creates an nginx with config as in template
 
 **Run using**: `./ansible.sh -l cloud -t docker,nginx`
-
+**See log**: `docker logs nginx-container`
 ### fresh:
 
 For freshly installed ubuntu, installs zsh also.
@@ -70,7 +70,6 @@ Install postgresql, configures it, and can migrate db from old host to new host:
 3. Migrate: `./ansible.sh -l cloud -t quotomatedb:migrate_db`
 
 ### websites
-
 Install websites available in `/roles/websites/vars/main.yml`. Also, installs ssl. NGINX uses this for ssl serving.
 
 There are two types of websites: Static as in kaxtus, and with nodejs server as in gaspi
@@ -79,6 +78,9 @@ There are two types of websites: Static as in kaxtus, and with nodejs server as 
 
 2. Or **Run using**: `./ansible.sh -l cloud -t websites -e "target_website=music"`
 
+3. Adding new website: Use one of the available structures: gaspi, kaxtus -> copy file -> add config to vars -> create ssl using `./ansible.sh -l cloud -t websites:ssl` -> run nginx
+
+quotomate is copy of gaspi
 ## Infrastructre:
 
 1. Kaxtus.com, kaxtus.de, quotomate, zaboub, reiddt, gulfrotables: godaddy: godaddy username 224581117
