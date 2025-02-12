@@ -16,6 +16,15 @@ websites:
       app_js_dir: 'formserver'
       ssl_enabled: true
       ssl_email: "admin@gaspi.aero"
+  calgaryexpedite:
+      domains: ['calgaryexpedite.com', 'www.calgaryexpedite.com']
+      repo_url: 'git@github.com:OverDriveGain/calgaryexpedite.git'
+      docker_image_name: 'calgaryexpedite-website'
+      root_name: 'calgaryexpedite-website'
+      port: 10084
+      app_js_dir: 'formserver'
+      ssl_enabled: true
+      ssl_email: "admin@calgaryexpedite.com"
   music:
       domains: ['music.kaxtus.com']
       port: 10082

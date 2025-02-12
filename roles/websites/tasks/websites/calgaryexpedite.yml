@@ -1,0 +1,52 @@
+- name: Set the port and username for localhost
+  set_fact:
+    docker_image_name: "{{ websites[website].docker_image_name }}"
+    repo_url: "{{ websites[website].repo_url }}"
+    root_name: "{{ websites[website].root_name }}"
+    port: "{{ websites[website].port }}"
+    root_dir: "{{ websites_cloud_dir }}/{{ websites[website].root_name }}"
+    app_js_dir: "{{ websites[website].app_js_dir }}"
+- name: Ensure storage_meta directory exists
+  ansible.builtin.file:
+    path: "{{ websites_cloud_dir }}"
+    state: directory
+
+- name: Clone the repository
+  ansible.builtin.git:
+    repo: "{{ repo_url }}"
+    dest: "{{ root_dir }}"
+    update: yes
+    force: yes
+
+- name: Ensure the Docker container is stopped
+  community.docker.docker_container:
+    name: "{{ docker_image_name }}"
+    state: stopped
+  ignore_errors: true
+
+- name: Create Docker container with Apache and Node.js
+  community.docker.docker_container:
+    name: "{{ docker_image_name }}"
+    image: "bitnami/node:18"
+    volumes:
+      - "{{ root_dir }}:/app"
+    env:
+      NODE_ENV: "production"
+      API_PORT: "{{ port }}"
+    working_dir: "/app/{{ app_js_dir }}"
+    network_mode: host
+    command: >
+      /bin/bash -c "
+      npm install &&
+      node app.js"
+    state: started
+    restart_policy: always
+
+- name: Wait for services to start
+  ansible.builtin.wait_for:
+    port: "{{ port }}"
+    timeout: 30
+
+- name: Print completion message
+  ansible.builtin.debug:
+    msg: "Docker container {{ docker_image_name }} is running with Apache proxying to Node.js backend."

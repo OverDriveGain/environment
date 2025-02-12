@@ -19,10 +19,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e263b157-f31d-49f7-aa73-4c1172e8d327" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inventory.ini" beforeDir="false" afterPath="$PROJECT_DIR$/inventory.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/roles/nginx/templates/nginx.conf.j2" beforeDir="false" afterPath="$PROJECT_DIR$/roles/nginx/templates/nginx.conf.j2" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/roles/websites/vars/main.yml" beforeDir="false" afterPath="$PROJECT_DIR$/roles/websites/vars/main.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -54,7 +50,7 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/manar.zaboub/projects/environment/roles/websites/tasks/websites",
+    "last_opened_file_path": "/home/manar/Projects/environment/roles/websites/tasks/websites",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
