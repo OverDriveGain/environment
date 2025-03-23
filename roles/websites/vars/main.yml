@@ -40,6 +40,9 @@ websites:
       port: 8123
       ssl_enabled: true
       ssl_email: "manar@zaboub.com"
+      nginx_proxy_headers:
+          upgrade: "$http_upgrade"
+          connection: "upgrade"
   quotomate:
       domains: [ 'quotomate.com', 'www.quotomate.com' ]
       repo_url: 'git@github.com:OverDriveGain/quotomate-web.git'

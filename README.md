@@ -87,6 +87,31 @@ Only installs ssl certificate for websites available in `/roles/websites/vars/ma
 ```angular2html
 ./ansible.sh -l cloud -t websites:ssl
 ```
+
+### House
+#### Configure jump host:
+1. Website: `./ansible.sh -l cloud -t websites -e "target_website=house"`
+2. If not running in website run ssl (See websites ssl only section)
+3. Nginx: `./ansible.sh -l cloud -t nginx`
+#### Configure home assistant
+1. Install home assistant and be able to access GUI
+2. Enable terminal access from add-on
+3. in file `/config/configuration.yaml` add this: 
+```angular2html:
+http:
+    use_x_forwarded_for: true
+    trusted_proxies:
+        - 172.30.33.0
+```
+4. restart: `ha core restart`
+5. Forward ssh: `ssh -R 8123:192.168.0.176:8123 ubuntu@kaxtus.com` Make sure to use 192.168.0.176
+6. In
+
+if it doesn't work use:
+ha core logs
+find which ip address its complaining about
+replace this ip address to the truested_proxies
+
 ### openvpn:
 Is not stable, use the script open-vpn-install.sh. If two public ip addresses are there, set in file `/etc/openvpn/server.conf`:
 ```angular2html
