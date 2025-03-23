@@ -81,10 +81,22 @@ There are two types of websites: Static as in kaxtus, and with nodejs server as 
 3. Adding new website: Use one of the available structures: gaspi, kaxtus -> copy file -> add config to vars -> create ssl using `./ansible.sh -l cloud -t websites:ssl` -> run nginx
 
 quotomate is copy of gaspi
+
+### websites ssl only
+Only installs ssl certificate for websites available in `/roles/websites/vars/main.yml`
+```angular2html
+./ansible.sh -l cloud -t websites:ssl
+```
+### openvpn:
+Is not stable, use the script open-vpn-install.sh. If two public ip addresses are there, set in file `/etc/openvpn/server.conf`:
+```angular2html
+local 172.31.46.166 <--------- This is private ip of the interface of the required public ip
+```
+
 ## Infrastructre:
 
 1. Kaxtus.com, kaxtus.de, quotomate, zaboub, reiddt, gulfrotables: godaddy: godaddy username 224581117
-
+2. Others: username 64879667
 # ToDo:
 
 websites:
