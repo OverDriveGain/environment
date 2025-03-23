@@ -96,21 +96,30 @@ Only installs ssl certificate for websites available in `/roles/websites/vars/ma
 #### Configure home assistant
 1. Install home assistant and confirm that its working by accessing GUI on `192.168.0.x:8123`
 2. Enable terminal access from add-on, and preferably confirm by enabling ssh access without `gui`: enable advanced mode, enable remote access, etc
-3. in file `/config/configuration.yaml` add this, the ip `172.30.33.0` might need to change but its for the docker, : 
+3. in file `/config/configuration.yaml` add following, the ip `172.30.33.0` might need to change but its for the docker, the ip 192.168.0.176 is used for autossh later, its the ip with which the gui can be accessed as well as the ssh of the homeassistant: 
 ```angular2html:
 http:
     use_x_forwarded_for: true
     trusted_proxies:
         - 172.30.33.0
+        - 192.168.0.176
 ```
 4. restart: `ha core restart`
-5. Forward ssh: `ssh -R 8123:192.168.0.176:8123 ubuntu@kaxtus.com` Make sure to use `192.168.0.176` and not localhost
-6. Log with: `ha core logs`
-
-if it doesn't work use:
-ha core logs
-find which ip address its complaining about
-replace this ip address to the truested_proxies
+5. Install addon from `https://github.com/ThomDietrich/home-assistant-addons` by adding this repository to the add one store third party repositories
+6. Configure as follow: 
+```angular2html
+hostname: kaxtus.com
+port: 22
+username: ubuntu
+remote_ip_address: 127.0.0.1
+remote_port: 8123
+local_ip_address: 192.168.0.176
+local_port: 8123
+remote_forwarding: leave empty
+```
+8. Log with: `ha core logs`, and on jumpserver cat `sudo tail -f /var/log/auth.log`
+9. If it doesn't work test with raw ssh forwarding from homeassistant with command: `ssh -R 8123:192.168.0.176:8123 ubuntu@kaxtus.com`
+10. Possibile fixes: `ha core logs` -> find which ip address its complaining about replace this ip address to the truested_proxies
 
 ### openvpn:
 Is not stable, use the script open-vpn-install.sh. If two public ip addresses are there, set in file `/etc/openvpn/server.conf`:
