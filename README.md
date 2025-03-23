@@ -96,7 +96,7 @@ Only installs ssl certificate for websites available in `/roles/websites/vars/ma
 #### Configure home assistant
 1. Install home assistant and confirm that its working by accessing GUI on `192.168.0.x:8123`
 2. Enable terminal access from add-on, and preferably confirm by enabling ssh access without `gui`: enable advanced mode, enable remote access, etc
-3. in file `/config/configuration.yaml` add this, the ip 172.30.33.0 might need to change: 
+3. in file `/config/configuration.yaml` add this, the ip `172.30.33.0` might need to change but its for the docker, : 
 ```angular2html:
 http:
     use_x_forwarded_for: true
