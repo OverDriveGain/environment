@@ -1,0 +1,7 @@
+- name: Set the facts
+  delegate_to: cloud
+
+- name: Print warning
+  debug:
+    msg: "This will do nothing, make sure Home Assistant is making the correct forwards"
+  delegate_to: cloud

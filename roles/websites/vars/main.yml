@@ -35,6 +35,11 @@ websites:
       ssl_enabled: true
       ssl_email: "admin@kaxtus.com"
       users: ['manar', 'mike']
+  house:
+      domains: ['house.zaboub.com']
+      port: 8123
+      ssl_enabled: true
+      ssl_email: "manar@zaboub.com"
   quotomate:
       domains: [ 'quotomate.com', 'www.quotomate.com' ]
       repo_url: 'git@github.com:OverDriveGain/quotomate-web.git'
