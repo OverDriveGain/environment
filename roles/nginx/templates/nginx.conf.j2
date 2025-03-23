@@ -81,7 +81,7 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
 
             # Add specific proxy headers if defined for this site
-            {% if details.nginx_proxy_headers %}
+            {% if details.nginx_proxy_headers is defined %}
             {% for header, value in details.nginx_proxy_headers.items() %}
             proxy_set_header {{ header }} {{ value }};
             {% endfor %}
@@ -144,7 +144,7 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
 
             # Add specific proxy headers if defined for this site
-            {% if details.nginx_proxy_headers %}
+            {% if details.nginx_proxy_headers is defined %}
             {% for header, value in details.nginx_proxy_headers.items() %}
             proxy_set_header {{ header }} {{ value }};
             {% endfor %}
