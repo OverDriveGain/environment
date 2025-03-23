@@ -90,13 +90,13 @@ Only installs ssl certificate for websites available in `/roles/websites/vars/ma
 
 ### House
 #### Configure jump host:
-1. Website: `./ansible.sh -l cloud -t websites -e "target_website=house"`
-2. If not running in website run ssl (See websites ssl only section)
-3. Nginx: `./ansible.sh -l cloud -t nginx`
+1. **Website** necessary for compliance with other modules: `./ansible.sh -l cloud -t websites -e "target_website=house"`
+2. If SSL did not run in previous step then run ssl refer **websites ssl only** section.
+3. **Nginx** to map `house.kaxtus.com` to the raspberry pi: `./ansible.sh -l cloud -t nginx`
 #### Configure home assistant
-1. Install home assistant and be able to access GUI
-2. Enable terminal access from add-on
-3. in file `/config/configuration.yaml` add this: 
+1. Install home assistant and confirm that its working by accessing GUI on `192.168.0.x:8123`
+2. Enable terminal access from add-on, and preferably confirm by enabling ssh access without `gui`: enable advanced mode, enable remote access, etc
+3. in file `/config/configuration.yaml` add this, the ip 172.30.33.0 might need to change: 
 ```angular2html:
 http:
     use_x_forwarded_for: true
@@ -104,8 +104,8 @@ http:
         - 172.30.33.0
 ```
 4. restart: `ha core restart`
-5. Forward ssh: `ssh -R 8123:192.168.0.176:8123 ubuntu@kaxtus.com` Make sure to use 192.168.0.176
-6. In
+5. Forward ssh: `ssh -R 8123:192.168.0.176:8123 ubuntu@kaxtus.com` Make sure to use `192.168.0.176` and not localhost
+6. Log with: `ha core logs`
 
 if it doesn't work use:
 ha core logs
