@@ -80,6 +80,8 @@ There are two types of websites: Static as in kaxtus, and with nodejs server as 
 
 3. Adding new website: Use one of the available structures: gaspi, kaxtus -> copy file -> add config to vars -> create ssl using `./ansible.sh -l cloud -t websites:ssl` -> run nginx
 
+4. Or without SSL **Run using**: `./ansible.sh -l cloud -t websites -e "target_website=gaspi" -e "nossl=true"`
+
 quotomate is copy of gaspi
 
 ### websites ssl only
@@ -128,11 +130,13 @@ local 172.31.46.166 <--------- This is private ip of the interface of the requir
 ```
 
 ## Infrastructre:
-
 1. Kaxtus.com, kaxtus.de, quotomate, zaboub, reiddt, gulfrotables: godaddy: godaddy username 224581117
 2. Others: username 64879667
-# ToDo:
 
+### Windows pc:
+1. Thinkcentre with RDP. Local ip 192.168.0.166
+2. Port forwarding with bitvie s2c: ``
+# ToDo:
 websites:
 quotomate,
 kaxtus.com

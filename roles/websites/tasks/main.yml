@@ -67,3 +67,4 @@
 - name: Include SSL tasks
   import_tasks: ssl.yml
   tags: ["websites:ssl"]
+  when: nossl is not defined
