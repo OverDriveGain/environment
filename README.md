@@ -134,8 +134,14 @@ local 172.31.46.166 <--------- This is private ip of the interface of the requir
 2. Others: username 64879667
 
 ### Windows pc:
-1. Thinkcentre with RDP. Local ip 192.168.0.166
-2. Port forwarding with bitvie s2c: ``
+1. Thinkcentre with RDP windows feature. Test locally if ok proceed
+2. Set Local static ip 192.168.0.166. Test locally if ok proceed
+2. Port forwarding from host to local with bitvie -> open tab s2c: `` 
+3. for bitvie create a profile then a shortcut "C:\Program Files (x86)\Bitvise SSH Client\BvSsh.exe" -profile="C:\Users\manar\Documents\remotedesk.tlp" -loginOnStartup 
+4. Add above file to win+r shell:startup
+5. add autologin on windows by editing registery win+r regedit: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+6. Disable sleep and hibernation
+
 # ToDo:
 websites:
 quotomate,
