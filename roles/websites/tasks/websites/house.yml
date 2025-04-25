@@ -3,5 +3,5 @@
 
 - name: Print warning
   debug:
-    msg: "This will do nothing, make sure Home Assistant is making the correct forwards"
+    msg: "This will do nothing, it will only adjust the nginx on the host. Make sure Home Assistant Linux OS running on raspberry pi is making the correct ssh forwards to it"
   delegate_to: cloud

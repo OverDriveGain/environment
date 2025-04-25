@@ -61,8 +61,9 @@
   vars:
     website: "{{ item.path | basename | regex_replace('\\.yml$', '') }}"
   when: >
-    target_website is not defined or 
-    (target_website == (item.path | basename | regex_replace('\\.yml$', '')))
+    onlyssl is not defined and 
+    (target_website is not defined or 
+    (target_website == (item.path | basename | regex_replace('\\.yml$', ''))))
 
 - name: Include SSL tasks
   import_tasks: ssl.yml

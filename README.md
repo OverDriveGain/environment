@@ -61,13 +61,13 @@ For freshly installed ubuntu, installs zsh also.
 
 **Run using**: `./ansible.sh -l cloud -t fresh`
 
-### quotomatedb
+### quotomate
 
 Install postgresql, configures it, and can migrate db from old host to new host:
 
-1. Setup: `./ansible.sh -l cloud -t quotomatedb:setup`
-2. Configure: `./ansible.sh -l cloud -t quotomatedb:configure`
-3. Migrate: `./ansible.sh -l cloud -t quotomatedb:migrate_db`
+1. Setup DB: `./ansible.sh -l cloud -t quotomate:setup_db`
+2. Configure DB: `./ansible.sh -l cloud -t quotomate:configure_db`
+3. Migrate DB: `./ansible.sh -l cloud -t quotomate:migrate_db`
 
 ### websites
 Install websites available in `/roles/websites/vars/main.yml`. Also, installs ssl. NGINX uses this for ssl serving.
@@ -134,6 +134,7 @@ local 172.31.46.166 <--------- This is private ip of the interface of the requir
 2. Others: username 64879667
 
 ### Windows pc:
+<<<<<<< HEAD
 1. Thinkcentre with RDP windows feature. Test locally if ok proceed
 2. Set Local static ip 192.168.0.166. Test locally if ok proceed
 2. Port forwarding from host to local with bitvie -> open tab s2c: `` 
@@ -142,6 +143,17 @@ local 172.31.46.166 <--------- This is private ip of the interface of the requir
 5. add autologin on windows by editing registery win+r regedit: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
 6. Disable sleep and hibernation
 
+=======
+1. Thinkcentre with RDP. Local ip 192.168.0.166
+2. Port forwarding with bitvie using tab s2c
+3. Use ssh keys keys
+4. Add to start up, beware to add to start up of the correct user that starts the pc from the local monitor: https://superuser.com/questions/1353398/how-can-i-set-in-the-bitvise-ssh-client-the-tunnel-automatic-connect-if-open-wi
+5. Remote desktop using the windows feature
+6. 
+## Linux xrdp
+1. Connect using: xfreerdp /v:kaxtus.com:3389 /u:manar /p:manarmama3 +clipboard +home-drive +fonts +window-drag /sound:sys:alsa /microphone:sys:alsa /compression-level:2 /network:auto /dynamic-resolution /f /log-level:WARN
+2. ctrl + alt + enter exit fullscreen
+>>>>>>> 74a252d (Restructure)
 # ToDo:
 websites:
 quotomate,

@@ -1,0 +1,8 @@
+- import_tasks: install_psql.yml
+  tags: ["quotomate:setup_db"]
+
+- import_tasks: add_users.yml
+  tags: ["quotomate:configure_db"]
+
+- import_tasks: migrate_db.yml
+  tags: ["quotomate:migrate_db"]
