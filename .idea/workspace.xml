@@ -8,6 +8,7 @@
     <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
     <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
     <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="3" type="long" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexRemoved" />
   </component>
   <component name="CMakeProjectFlavorService">
     <option name="flavorId" value="CMakePlainProjectFlavor" />
@@ -19,6 +20,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e263b157-f31d-49f7-aa73-4c1172e8d327" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playbook.yml" beforeDir="false" afterPath="$PROJECT_DIR$/playbook.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/roles/websites/vars/main.yml" beforeDir="false" afterPath="$PROJECT_DIR$/roles/websites/vars/main.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -50,18 +54,20 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/manar/Projects/environment/roles/websites/tasks/websites",
+    "last_opened_file_path": "/home/manar.zaboub/projects/environment/roles/websites/tasks/websites",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "two.files.diff.last.used.file": "/home/manar.zaboub/projects/environment/roles/nginx/templates/nginx.conf.j2",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/roles/websites/tasks/websites" />
+      <recent name="$PROJECT_DIR$/roles/quotomate/tasks" />
       <recent name="$PROJECT_DIR$/roles/jumphost/tasks" />
     </key>
   </component>
@@ -79,6 +85,27 @@
       <workItem from="1737909398053" duration="2102000" />
       <workItem from="1738075747853" duration="17000" />
       <workItem from="1739135970010" duration="5627000" />
+      <workItem from="1739700011494" duration="6477000" />
+      <workItem from="1741810150071" duration="1245000" />
+      <workItem from="1741883330288" duration="5000" />
+      <workItem from="1742072006156" duration="687000" />
+      <workItem from="1742688668435" duration="3454000" />
+      <workItem from="1742692411681" duration="4200000" />
+      <workItem from="1742738248279" duration="2503000" />
+      <workItem from="1742761200931" duration="1215000" />
+      <workItem from="1742898356162" duration="10000" />
+      <workItem from="1743422426725" duration="1273000" />
+      <workItem from="1743510545579" duration="632000" />
+      <workItem from="1743580209112" duration="182000" />
+      <workItem from="1743934886545" duration="1968000" />
+      <workItem from="1744229122934" duration="433000" />
+      <workItem from="1744231454796" duration="800000" />
+      <workItem from="1744994879855" duration="1154000" />
+      <workItem from="1745141565482" duration="596000" />
+      <workItem from="1745147577370" duration="645000" />
+      <workItem from="1745243939091" duration="19000" />
+      <workItem from="1745590073866" duration="3426000" />
+      <workItem from="1746892357483" duration="927000" />
     </task>
     <servers />
   </component>

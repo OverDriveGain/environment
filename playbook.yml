@@ -20,7 +20,7 @@
       become: yes
       tags:
         - 'fresh'
-    - role: quotomatedb
+    - role: quotomate
       become: yes
       tags:
         - 'quotomatedb'

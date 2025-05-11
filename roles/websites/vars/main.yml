@@ -53,3 +53,9 @@ websites:
       ssl_enabled: true
       ssl_email: "admin@quotomate.aero"
       unsafe_eval: true
+  n8n:
+      domains: [ 'n8n.kaxtus.com' ]
+      port: 5678
+      container_name: n8n
+      ssl_enabled: true
+      ssl_email: "admin@kaxtus.com"

@@ -68,6 +68,7 @@ Install postgresql, configures it, and can migrate db from old host to new host:
 1. Setup DB: `./ansible.sh -l cloud -t quotomate:setup_db`
 2. Configure DB: `./ansible.sh -l cloud -t quotomate:configure_db`
 3. Migrate DB: `./ansible.sh -l cloud -t quotomate:migrate_db`
+4. Start PN search engine API: `./ansible.sh -l cloud -t quotomate:pn_search_engine_api`
 
 ### websites
 Install websites available in `/roles/websites/vars/main.yml`. Also, installs ssl. NGINX uses this for ssl serving.
