@@ -3,5 +3,5 @@
 
 - name: Print warning
   debug:
-    msg: "This will do nothing, it will only adjust the nginx on the host. Make sure docker-compose up is started in the host"
+    msg: "This will do nothing, it will only adjust the nginx on the host. Make sure docker-compose up is started in the host inside the ai-assistant directory"
   delegate_to: cloud
