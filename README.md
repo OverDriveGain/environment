@@ -90,6 +90,8 @@ Only installs ssl certificate for websites available in `/roles/websites/vars/ma
 ```angular2html
 ./ansible.sh -l cloud -t websites:ssl
 ```
+In host the directory of ssl certificates of nginx is in '/opt/nginx/ssl/'
+And is copied from the letsencrypt default directory
 
 ### House
 #### Configure jump host:
@@ -123,7 +125,7 @@ remote_forwarding: leave empty
 8. Log with: `ha core logs`, and on jumpserver cat `sudo tail -f /var/log/auth.log`
 9. If it doesn't work test with raw ssh forwarding from homeassistant with command: `ssh -R 8123:192.168.0.176:8123 ubuntu@kaxtus.com`
 10. Possibile fixes: `ha core logs` -> find which ip address its complaining about replace this ip address to the truested_proxies
-
+11. ssh into home assistance: ssh root@192.168.0.176 -p 10666 pass: manarmama3
 ### openvpn:
 Is not stable, use the script open-vpn-install.sh. If two public ip addresses are there, set in file `/etc/openvpn/server.conf`:
 ```angular2html
