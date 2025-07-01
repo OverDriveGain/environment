@@ -1,7 +1,0 @@
-- name: Set the facts
-  delegate_to: cloud
-
-- name: Print warning
-  debug:
-    msg: "ToDo create a website that forward only"
-  delegate_to: cloud

@@ -63,12 +63,13 @@ websites:
       websocket_paths:
           - /rest/push
       debug_logging: true
-#  rieddt:
-#      domains: [ 'rieddt.com', 'www.rieddt.com' ]
-#      port: 5679
-#      container_name: todo
-#      ssl_enabled: false
-#      ssl_email: "admin@reiddt.com"
+  rieddt:
+      domains: [ 'rieddt.com', 'www.rieddt.com' ]
+      repo_url: 'git@github.com:kaxtus/rieddt.git'
+      ssl_enabled: true
+      ssl_email: "admin@reiddt.com"
+      root_name: 'rieddt-website'
+      bin_dir: './'
   analytics:
       domains: ['analytics.kaxtus.com' ]
       port: 5679
