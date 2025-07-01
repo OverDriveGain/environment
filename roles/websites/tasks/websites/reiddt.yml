@@ -3,5 +3,5 @@
 
 - name: Print warning
   debug:
-    msg: "This will do nothing, it will only adjust the nginx on the host. Make sure docker-compose up is started in the host with container as named in vars"
+    msg: "ToDo create a website that forward only"
   delegate_to: cloud

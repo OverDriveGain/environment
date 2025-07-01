@@ -63,9 +63,15 @@ websites:
       websocket_paths:
           - /rest/push
       debug_logging: true
-  reiddt:
-      domains: [ 'www.reiddt.com' ]
+#  rieddt:
+#      domains: [ 'rieddt.com', 'www.rieddt.com' ]
+#      port: 5679
+#      container_name: todo
+#      ssl_enabled: false
+#      ssl_email: "admin@reiddt.com"
+  analytics:
+      domains: ['analytics.kaxtus.com' ]
       port: 5679
-      container_name: n8n
-      ssl_enabled: true
-      ssl_email: "admin@kaxtus.com"
+      container_name: plausible
+      ssl_enabled: true # fales because this is in kaxtus -> ssl
+      ssl_email: "placeholder" #This has to be present

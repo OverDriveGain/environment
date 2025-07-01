@@ -79,7 +79,7 @@ There are two types of websites: Static as in kaxtus, and with nodejs server as 
 
 2. Or **Run using**: `./ansible.sh -l cloud -t websites -e "target_website=music"`
 
-3. Adding new website: Use one of the available structures: gaspi, kaxtus -> copy file -> add config to vars -> create ssl using `./ansible.sh -l cloud -t websites:ssl` -> run nginx
+3. Adding new website: Use one of the available structures: gaspi, kaxtus -> copy file -> add config to vars -> create ssl using `./ansible.sh -l cloud -t websites:ssl` ->  run nginx ansible with `./ansible.sh -l cloud -t nginx`
 
 4. Or without SSL **Run using**: `./ansible.sh -l cloud -t websites -e "target_website=gaspi" -e "nossl=true"`
 
@@ -92,6 +92,17 @@ Only installs ssl certificate for websites available in `/roles/websites/vars/ma
 ```
 In host the directory of ssl certificates of nginx is in '/opt/nginx/ssl/'
 And is copied from the letsencrypt default directory
+
+Debug. Sometimes the certificates don't renew to do this manually
+```js
+docker stop nginx-container
+sudo certbot certonly --standalone \             
+  --email admin@calgaryexpedite.com \ 
+  -d calgaryexpedite.com -d www.calgaryexpedite.com \
+  --agree-tos \
+  --non-interactive \
+  --debug
+docker start nginx-container```
 
 ### House
 #### Configure jump host:
@@ -165,3 +176,11 @@ iphone,
 gaspi,
 aat,
 sparescrew,
+
+# Debug:
+
+1. fatal: [kaxtus]: FAILED! => {"changed": false, "gid": 101, "group": "messagebus", "mode": "0755", "msg": "chown failed: [Errno 1] Operation not permitted: b'/home/ubuntu/nginx-dist-websites'", "owner": "messagebus", "path": "/home/ubuntu/nginx-dist-websites", "size": 4096, "state": "directory", "uid": 101}
+do: sudo chown -R ubuntu:ubuntu nginx-dist-websites
+2. nginx container not starting: docker logs nginx-container
+3. nginx container config: sudo cat /opt/nginx/conf/nginx.conf
+4. nginx container errors: docker exec -it nginx-container tail -f /var/log/nginx/error.log

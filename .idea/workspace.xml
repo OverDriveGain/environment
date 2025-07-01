@@ -21,7 +21,12 @@
     <list default="true" id="e263b157-f31d-49f7-aa73-4c1172e8d327" name="Changes" comment="">
       <change afterPath="$PROJECT_DIR$/roles/websites/tasks/websites/reiddt.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/roles/websites/tasks/websites/n8n.yml" beforeDir="false" afterPath="$PROJECT_DIR$/roles/websites/tasks/websites/n8n.yml" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/roles/websites/tasks/websites/reiddt.yml" beforeDir="false" afterPath="$PROJECT_DIR$/roles/websites/tasks/websites/reiddt.yml" afterDir="false" />
+>>>>>>> c929221 (Config for rieddt)
       <change beforePath="$PROJECT_DIR$/roles/websites/vars/main.yml" beforeDir="false" afterPath="$PROJECT_DIR$/roles/websites/vars/main.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -105,6 +110,11 @@
       <workItem from="1745243939091" duration="19000" />
       <workItem from="1745590073866" duration="3426000" />
       <workItem from="1746892357483" duration="927000" />
+      <workItem from="1747211946788" duration="1592000" />
+      <workItem from="1747234613090" duration="5000" />
+      <workItem from="1750795630120" duration="347000" />
+      <workItem from="1751374190934" duration="2388000" />
+      <workItem from="1751377622051" duration="2474000" />
     </task>
     <servers />
   </component>
