@@ -71,6 +71,20 @@ http {
         {% if details.ssl_enabled | default(false) %}
         return 301 https://$host$request_uri;
         {% else %}
+
+        {% if details.cors | default(false) %}
+        # Simple OPTIONS handling for CORS
+        location = /options {
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+            add_header Access-Control-Allow-Headers "Accept, Authorization, Cache-Control, Content-Type, DNT, If-Modified-Since, Keep-Alive, Origin, User-Agent, X-Requested-With";
+            add_header Access-Control-Max-Age 1728000;
+            add_header Content-Type "text/plain; charset=utf-8";
+            add_header Content-Length 0;
+            return 204;
+        }
+        {% endif %}
+
         location / {
             {% if details.bin_dir is defined %}
             root {{ websites_dist_dir }}/{{ site }};
@@ -109,6 +123,14 @@ http {
             proxy_buffer_size 16k;
             proxy_buffers 4 16k;
             {% endif %}
+
+            # Add CORS headers if enabled for this site
+            {% if details.cors | default(false) %}
+            add_header Access-Control-Allow-Origin "*" always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Accept, Authorization, Cache-Control, Content-Type, DNT, If-Modified-Since, Keep-Alive, Origin, User-Agent, X-Requested-With" always;
+            add_header Access-Control-Expose-Headers "Authorization" always;
+            {% endif %}
         }
 
         {% if details.websocket_support | default(false) and details.websocket_paths is defined %}
@@ -125,6 +147,13 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_read_timeout 3600s;
             proxy_buffering off;
+
+            {% if details.cors | default(false) %}
+            # Add CORS headers for WebSocket endpoints
+            add_header Access-Control-Allow-Origin "*" always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Accept, Authorization, Cache-Control, Content-Type, DNT, If-Modified-Since, Keep-Alive, Origin, User-Agent, X-Requested-With" always;
+            {% endif %}
         }
         {% endfor %}
         {% endif %}
@@ -164,6 +193,19 @@ http {
         error_log /var/log/nginx/{{ site }}_error.log debug;
         {% endif %}
 
+        {% if details.cors | default(false) %}
+        # Simple OPTIONS handling for CORS (HTTPS)
+        location = /options {
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+            add_header Access-Control-Allow-Headers "Accept, Authorization, Cache-Control, Content-Type, DNT, If-Modified-Since, Keep-Alive, Origin, User-Agent, X-Requested-With";
+            add_header Access-Control-Max-Age 1728000;
+            add_header Content-Type "text/plain; charset=utf-8";
+            add_header Content-Length 0;
+            return 204;
+        }
+        {% endif %}
+
         location / {
             {% if details.bin_dir is defined %}
             root {{ websites_dist_dir }}/{{ site }};
@@ -202,6 +244,14 @@ http {
             proxy_buffer_size 16k;
             proxy_buffers 4 16k;
             {% endif %}
+
+            # Add CORS headers if enabled for this site
+            {% if details.cors | default(false) %}
+            add_header Access-Control-Allow-Origin "*" always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Accept, Authorization, Cache-Control, Content-Type, DNT, If-Modified-Since, Keep-Alive, Origin, User-Agent, X-Requested-With" always;
+            add_header Access-Control-Expose-Headers "Authorization" always;
+            {% endif %}
         }
 
         {% if details.websocket_support | default(false) and details.websocket_paths is defined %}
@@ -218,6 +268,13 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_read_timeout 3600s;
             proxy_buffering off;
+
+            {% if details.cors | default(false) %}
+            # Add CORS headers for WebSocket endpoints
+            add_header Access-Control-Allow-Origin "*" always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Accept, Authorization, Cache-Control, Content-Type, DNT, If-Modified-Since, Keep-Alive, Origin, User-Agent, X-Requested-With" always;
+            {% endif %}
         }
         {% endfor %}
         {% endif %}

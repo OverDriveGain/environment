@@ -76,3 +76,4 @@ websites:
       container_name: plausible
       ssl_enabled: true # fales because this is in kaxtus -> ssl
       ssl_email: "placeholder" #This has to be present
+      cors: false
