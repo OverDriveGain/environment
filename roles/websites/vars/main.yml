@@ -63,3 +63,9 @@ websites:
       websocket_paths:
           - /rest/push
       debug_logging: true
+  reiddt:
+      domains: [ 'www.reiddt.com' ]
+      port: 5679
+      container_name: n8n
+      ssl_enabled: true
+      ssl_email: "admin@kaxtus.com"

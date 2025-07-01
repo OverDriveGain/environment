@@ -1,0 +1,7 @@
+- name: Set the facts
+  delegate_to: cloud
+
+- name: Print warning
+  debug:
+    msg: "This will do nothing, it will only adjust the nginx on the host. Make sure docker-compose up is started in the host with container as named in vars"
+  delegate_to: cloud
