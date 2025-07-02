@@ -70,6 +70,13 @@ websites:
       ssl_email: "admin@reiddt.com"
       root_name: 'rieddt-website'
       bin_dir: './'
+  reiddt:
+      domains: [ 'reiddt.com', 'www.reiddt.com' ]
+      repo_url: 'git@github.com:kaxtus/rieddt.git'
+      ssl_enabled: true
+      ssl_email: "admin@reiddt.com"
+      root_name: 'reiddt-website'
+      bin_dir: './'
   analytics:
       domains: ['analytics.kaxtus.com' ]
       port: 5679

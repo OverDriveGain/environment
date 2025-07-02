@@ -1,0 +1,28 @@
+- name: Set the facts
+  set_fact:
+    repo_url: "{{ websites[website].repo_url }}"
+    root_name: "{{ websites[website].root_name }}"
+    bin_dir: "{{ websites_cloud_dir }}/{{ websites[website].root_name }}/{{ websites[website].bin_dir }}"
+
+- name: Ensure storage_meta directory exists
+  ansible.builtin.file:
+    path: "{{ websites_cloud_dir }}"
+    state: directory
+
+- name: Clone the repository
+  ansible.builtin.git:
+    repo: "{{ repo_url }}"
+    dest: "{{ websites_cloud_dir }}/{{ root_name }}"
+    version: "reiddt"
+    update: yes
+    force: yes
+
+- name: Copy contents of bin_dir to a new directory inside {{ websites_dist_dir }} called website
+  ansible.builtin.copy:
+    src: "{{ bin_dir }}/"
+    dest: "{{ websites_dist_dir }}/{{ website }}"
+    remote_src: yes
+
+- name: Print completion message
+  ansible.builtin.debug:
+    msg: "Copied file to {{ website }} in website dist dir '{{ websites_dist_dir }}'"
