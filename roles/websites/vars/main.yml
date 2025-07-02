@@ -44,7 +44,7 @@ websites:
           upgrade: "$http_upgrade"
           connection: "upgrade"
   quotomate:
-      domains: [ 'quotomate.com', 'www.quotomate.com' ]
+      domains: [ 'quotomate.com', 'www.quotomate.com', 'windows.quotomate.com', 'linux.quotomate.com' ]
       repo_url: 'git@github.com:OverDriveGain/quotomate-web.git'
       docker_image_name: 'quotomate-website'
       root_name: 'quotomate-website'
