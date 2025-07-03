@@ -1,0 +1,122 @@
+# roles/nginx/templates/sites/node_app_with_static.conf.j2
+{% for domain in site_config.domains %}
+{% if site_config.subdomain_static_dirs is defined and domain in site_config.subdomain_static_dirs %}
+# Static subdomain server for {{ domain }}
+server {
+    listen 80;
+    server_name {{ domain }};
+
+    {% if site_config.ssl_enabled | default(false) %}
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS static server for {{ domain }}
+server {
+    listen 443 ssl http2;
+    server_name {{ domain }};
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/{{ site_name }}/key.pem;
+    include /etc/nginx/includes/ssl_common.conf;
+    {% else %}
+    # HTTP only configuration
+    {% endif %}
+
+    # Document root for static files
+    root {{ site_config.subdomain_static_dirs[domain] }};
+    index index.html index.htm;
+
+    # Logging
+    access_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_access.log main;
+    error_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_error.log;
+
+    # Static file serving
+    location / {
+        try_files $uri $uri/ =404;
+
+        # Cache static files
+        location ~* \.(exe|msi|dmg|pkg|deb|rpm|zip|tar\.gz|tar\.bz2)$ {
+            expires 1d;
+            add_header Cache-Control "public";
+            add_header Content-Disposition "attachment";
+        }
+
+        location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            access_log off;
+        }
+    }
+
+    # Security headers
+    {% include 'includes/security_headers.conf.j2' %}
+}
+{% else %}
+# Node.js app server for {{ domain }}
+server {
+    listen 80;
+    server_name {{ domain }};
+
+    {% if site_config.ssl_enabled | default(false) %}
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS Node.js server for {{ domain }}
+server {
+    listen 443 ssl http2;
+    server_name {{ domain }};
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/{{ site_name }}/key.pem;
+    include /etc/nginx/includes/ssl_common.conf;
+    {% else %}
+    # HTTP only configuration
+    {% endif %}
+
+    # Logging
+    access_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_access.log main;
+    error_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_error.log;
+
+    # Rate limiting
+    limit_req zone=general burst=20 nodelay;
+
+    # Main proxy location
+    location / {
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+        include /etc/nginx/includes/proxy_headers.conf;
+
+        # Handle large file uploads
+        client_max_body_size 100m;
+        client_body_timeout 120s;
+
+        # Custom proxy headers if defined
+        {% if site_config.nginx_proxy_headers is defined %}
+        {% for header, value in site_config.nginx_proxy_headers.items() %}
+        proxy_set_header {{ header | title }} {{ value }};
+        {% endfor %}
+        {% endif %}
+    }
+
+    # API endpoints with different rate limiting
+    location /api/ {
+        limit_req zone=general burst=10 nodelay;
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+        include /etc/nginx/includes/proxy_headers.conf;
+    }
+
+    # Health check endpoint
+    location /health {
+        proxy_pass http://127.0.0.1:{{ site_config.port }}/health;
+        include /etc/nginx/includes/proxy_headers.conf;
+        access_log off;
+    }
+
+    # Security headers
+    {% include 'includes/security_headers.conf.j2' %}
+}
+{% endif %}
+{% endfor %}

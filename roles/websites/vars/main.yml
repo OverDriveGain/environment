@@ -1,86 +1,102 @@
+# roles/websites/vars/main.yml
 websites:
-  kaxtus:
-      domains: ['kaxtus.com', 'www.kaxtus.com']
-      repo_url: 'git@github.com:kaxtus/homePage.git'
-      docker_image_name: 'kaxtus-website'
-      root_name: 'kaxtus-website'
-      bin_dir: 'dist'
-      ssl_enabled: true
-      ssl_email: "admin@kaxtus.com"
-  gaspi:
-      domains: ['gaspi.aero', 'www.gaspi.aero']
-      repo_url: 'git@github.com:OverDriveGain/gaspi.git'
-      docker_image_name: 'gaspi-website'
-      root_name: 'gaspi-website'
-      port: 10081
-      app_js_dir: 'formserver'
-      ssl_enabled: true
-      ssl_email: "admin@gaspi.aero"
-  calgaryexpedite:
-      domains: ['calgaryexpedite.com', 'www.calgaryexpedite.com']
-      repo_url: 'git@github.com:OverDriveGain/calgaryexpedite.git'
-      docker_image_name: 'calgaryexpedite-website'
-      root_name: 'calgaryexpedite-website'
-      port: 10084
-      app_js_dir: 'formserver'
-      ssl_enabled: true
-      ssl_email: "admin@calgaryexpedite.com"
-  music:
-      domains: ['music.kaxtus.com']
-      port: 10082
-      app_secret: supersecret
-      container_name: leafplayer
-      admin_username: admin
-      admin_password: supersecret
-      ssl_enabled: true
-      ssl_email: "admin@kaxtus.com"
-      users: ['manar', 'mike']
-  house:
-      domains: ['house.zaboub.com']
-      port: 8123
-      ssl_enabled: true
-      ssl_email: "manar@zaboub.com"
-      nginx_proxy_headers:
-          upgrade: "$http_upgrade"
-          connection: "upgrade"
-  quotomate:
-      domains: [ 'quotomate.com', 'www.quotomate.com', 'windows.quotomate.com', 'linux.quotomate.com' ]
-      repo_url: 'git@github.com:OverDriveGain/quotomate-web.git'
-      docker_image_name: 'quotomate-website'
-      root_name: 'quotomate-website'
-      port: 10083
-      app_js_dir: 'backend'
-      ssl_enabled: true
-      ssl_email: "admin@quotomate.aero"
-      unsafe_eval: true
-  n8n:
-      domains: [ 'n8n.kaxtus.com' ]
-      port: 5678
-      container_name: n8n
-      ssl_enabled: true
-      ssl_email: "admin@kaxtus.com"
-      websocket_support: true
-      websocket_paths:
-          - /rest/push
-      debug_logging: true
-  rieddt:
-      domains: [ 'rieddt.com', 'www.rieddt.com' ]
-      repo_url: 'git@github.com:kaxtus/rieddt.git'
-      ssl_enabled: true
-      ssl_email: "admin@reiddt.com"
-      root_name: 'rieddt-website'
-      bin_dir: './'
-  reiddt:
-      domains: [ 'reiddt.com', 'www.reiddt.com' ]
-      repo_url: 'git@github.com:kaxtus/rieddt.git'
-      ssl_enabled: true
-      ssl_email: "admin@reiddt.com"
-      root_name: 'reiddt-website'
-      bin_dir: './'
-  analytics:
-      domains: ['analytics.kaxtus.com' ]
-      port: 5679
-      container_name: plausible
-      ssl_enabled: true # fales because this is in kaxtus -> ssl
-      ssl_email: "placeholder" #This has to be present
-      cors: false
+    kaxtus:
+        domains: ['kaxtus.com', 'www.kaxtus.com']
+        repo_url: 'git@github.com:kaxtus/homePage.git'
+        docker_image_name: 'kaxtus-website'
+        root_name: 'kaxtus-website'
+        bin_dir: 'dist'
+        ssl_enabled: true
+        ssl_email: "admin@kaxtus.com"
+        template: 'static_site'
+    gaspi:
+        domains: ['gaspi.aero', 'www.gaspi.aero']
+        repo_url: 'git@github.com:OverDriveGain/gaspi.git'
+        docker_image_name: 'gaspi-website'
+        root_name: 'gaspi-website'
+        port: 10081
+        app_js_dir: 'formserver'
+        ssl_enabled: true
+        ssl_email: "admin@gaspi.aero"
+        template: 'node_app'
+    calgaryexpedite:
+        domains: ['calgaryexpedite.com', 'www.calgaryexpedite.com']
+        repo_url: 'git@github.com:OverDriveGain/calgaryexpedite.git'
+        docker_image_name: 'calgaryexpedite-website'
+        root_name: 'calgaryexpedite-website'
+        port: 10084
+        app_js_dir: 'formserver'
+        ssl_enabled: true
+        ssl_email: "admin@calgaryexpedite.com"
+        template: 'node_app'
+    music:
+        domains: ['music.kaxtus.com']
+        port: 10082
+        app_secret: supersecret
+        container_name: leafplayer
+        admin_username: admin
+        admin_password: supersecret
+        ssl_enabled: true
+        ssl_email: "admin@kaxtus.com"
+        users: ['manar', 'mike']
+        template: 'proxy_app'
+    house:
+        domains: ['house.zaboub.com']
+        port: 8123
+        ssl_enabled: true
+        ssl_email: "manar@zaboub.com"
+        nginx_proxy_headers:
+            upgrade: "$http_upgrade"
+            connection: "upgrade"
+        template: 'proxy_app'
+        websocket_support: true
+    quotomate:
+        domains: [ 'quotomate.com', 'www.quotomate.com', 'windows.quotomate.com', 'linux.quotomate.com' ]
+        repo_url: 'git@github.com:OverDriveGain/quotomate-web.git'
+        docker_image_name: 'quotomate-website'
+        root_name: 'quotomate-website'
+        port: 10083
+        app_js_dir: 'backend'
+        ssl_enabled: true
+        ssl_email: "admin@quotomate.aero"
+        unsafe_eval: true # Used for javascript client side rendered
+        subdomain_static_dirs:
+            'windows.quotomate.com': '/var/www/quotomate/windows'
+            'linux.quotomate.com': '/var/www/quotomate/linux'
+        template: 'node_app_with_static'
+    n8n:
+        domains: [ 'n8n.kaxtus.com' ]
+        port: 5678
+        container_name: n8n
+        ssl_enabled: true
+        ssl_email: "admin@kaxtus.com"
+        websocket_support: true
+        websocket_paths:
+            - /rest/push
+        debug_logging: true
+        template: 'proxy_app'
+    rieddt:
+        domains: [ 'rieddt.com', 'www.rieddt.com' ]
+        repo_url: 'git@github.com:kaxtus/rieddt.git'
+        ssl_enabled: true
+        ssl_email: "admin@reiddt.com"
+        root_name: 'rieddt-website'
+        bin_dir: './'
+        template: 'static_site'
+    reiddt:
+        domains: [ 'reiddt.com', 'www.reiddt.com' ]
+        repo_url: 'git@github.com:kaxtus/rieddt.git'
+        ssl_enabled: true
+        ssl_email: "admin@reiddt.com"
+        root_name: 'reiddt-website'
+        bin_dir: './'
+        template: 'static_site'
+    analytics:
+        domains: ['analytics.kaxtus.com' ]
+        port: 5679
+        container_name: plausible
+        ssl_enabled: true
+        ssl_email: "placeholder"
+        cors: false
+        template: 'proxy_app'
+        unsafe_eval: true

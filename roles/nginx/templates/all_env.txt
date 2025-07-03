@@ -1,0 +1,578 @@
+=== ./nginx.conf.j2 ===
+user nginx;
+worker_processes auto;
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections 1024;
+    multi_accept on;
+    use epoll;
+}
+
+http {
+    # Basic Settings
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    server_tokens off;
+    client_max_body_size 100m;
+
+    # MIME Types
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # Logging Format
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                   '$status $body_bytes_sent "$http_referer" '
+                   '"$http_user_agent" "$http_x_forwarded_for"';
+
+    # Logging
+    access_log /var/log/nginx/access.log main buffer=512k flush=1m;
+    error_log /var/log/nginx/error.log warn;
+
+    # Gzip Settings
+    gzip on;
+    gzip_disable "msie6";
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_min_length 1000;
+    gzip_types
+        text/plain
+        text/css
+        application/json
+        application/javascript
+        text/xml
+        application/xml
+        application/xml+rss
+        text/javascript;
+
+    # Rate Limiting
+    limit_req_zone $binary_remote_addr zone=general:10m rate=10r/s;
+    limit_req_zone $binary_remote_addr zone=api:10m rate=5r/s;
+
+    # WebSocket Connection Upgrade Map
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
+    # Health check endpoint
+    server {
+        listen 0.0.0.0:10079;
+        listen [::]:10079;
+        server_name localhost;
+
+        location /healthz {
+            access_log off;
+            return 200 'OK\n';
+            add_header Content-Type text/plain;
+        }
+    }
+
+    # Include all site configurations
+    include /etc/nginx/sites/*.conf;
+}
+=== ./includes/ssl_common.conf.j2 ===
+# roles/nginx/templates/includes/ssl_common.conf.j2
+# SSL Configuration
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA256:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA;
+ssl_prefer_server_ciphers on;
+ssl_session_cache shared:SSL:10m;
+ssl_session_timeout 10m;
+ssl_session_tickets off;
+
+# HSTS (HTTP Strict Transport Security)
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+# OCSP Stapling
+ssl_stapling on;
+ssl_stapling_verify on;
+resolver 8.8.8.8 8.8.4.4 valid=300s;
+resolver_timeout 5s;
+=== ./includes/security_headers.conf.j2 ===
+# roles/nginx/templates/includes/security_headers.conf.j2
+# Security Headers
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+add_header Referrer-Policy "no-referrer-when-downgrade" always;
+add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'{% if site_config.unsafe_eval | default(false) %} 'unsafe-eval'{% endif %};" always;
+
+# Remove server tokens
+server_tokens off;
+=== ./includes/proxy_headers.conf.j2 ===
+# roles/nginx/templates/includes/proxy_headers.conf.j2
+# Proxy Headers
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Port $server_port;
+
+# Proxy timeouts
+proxy_connect_timeout 60s;
+proxy_send_timeout 60s;
+proxy_read_timeout 60s;
+
+# Proxy buffering
+proxy_buffering on;
+proxy_buffer_size 128k;
+proxy_buffers 4 256k;
+proxy_busy_buffers_size 256k;
+=== ./sites/default.conf.j2 ===
+# roles/nginx/templates/sites/default.conf.j2
+{% for domain in site_config.domains %}
+# Default configuration for {{ domain }}
+# This is a fallback template when no specific template is defined
+
+server {
+    listen 80;
+    server_name {{ domain }};
+
+    {% if site_config.ssl_enabled | default(false) %}
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS server for {{ domain }}
+server {
+    listen 443 ssl http2;
+    server_name {{ domain }};
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/{{ site_name }}/key.pem;
+    include /etc/nginx/includes/ssl_common.conf;
+    {% else %}
+    # HTTP only configuration
+    {% endif %}
+
+    # Logging
+    access_log /var/log/nginx/{{ site_name }}_access.log main;
+    error_log /var/log/nginx/{{ site_name }}_error.log;
+
+    {% if site_config.port is defined %}
+    # Proxy to application
+    location / {
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+        include /etc/nginx/includes/proxy_headers.conf;
+    }
+    {% else %}
+    # Serve static files
+    root {{ websites_dist_dir }}/{{ site_name }};
+    index index.html index.htm;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    {% endif %}
+
+    # Security headers
+    include /etc/nginx/includes/security_headers.conf;
+}
+{% endfor %}
+=== ./sites/static_site.conf.j2 ===
+# roles/nginx/templates/sites/static_site.conf.j2
+{% for domain in site_config.domains %}
+# HTTP server for {{ domain }} - redirect to HTTPS
+server {
+    listen 80;
+    server_name {{ domain }};
+
+    {% if site_config.ssl_enabled | default(false) %}
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS server for {{ domain }}
+server {
+    listen 443 ssl http2;
+    server_name {{ domain }};
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/{{ site_name }}/key.pem;
+    include /etc/nginx/includes/ssl_common.conf;
+    {% else %}
+    # HTTP only configuration
+    {% endif %}
+
+    # Document root
+    root {{ websites_dist_dir }}/{{ site_name }};
+    index index.html index.htm;
+
+    # Logging
+    access_log /var/log/nginx/{{ site_name }}_access.log main;
+    error_log /var/log/nginx/{{ site_name }}_error.log;
+
+    # Main location block
+    location / {
+        try_files $uri $uri/ /index.html;
+
+        # Cache static files
+        location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            access_log off;
+        }
+    }
+
+    # Deny access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Deny access to backup and config files
+    location ~* \.(bak|config|sql|fla|psd|ini|log|sh|inc|swp|dist)$ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Security headers
+    include /etc/nginx/includes/security_headers.conf;
+}
+{% endfor %}
+=== ./sites/node_app.conf.j2 ===
+# roles/nginx/templates/sites/node_app.conf.j2
+{% for domain in site_config.domains %}
+# HTTP server for {{ domain }} - redirect to HTTPS
+server {
+    listen 80;
+    server_name {{ domain }};
+
+    {% if site_config.ssl_enabled | default(false) %}
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS server for {{ domain }}
+server {
+    listen 443 ssl http2;
+    server_name {{ domain }};
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/{{ site_name }}/key.pem;
+    include /etc/nginx/includes/ssl_common.conf;
+    {% else %}
+    # HTTP only configuration
+    {% endif %}
+
+    # Logging
+    access_log /var/log/nginx/{{ site_name }}_access.log main;
+    error_log /var/log/nginx/{{ site_name }}_error.log;
+
+    # Rate limiting
+    limit_req zone=general burst=20 nodelay;
+
+    # Main proxy location
+    location / {
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+        include /etc/nginx/includes/proxy_headers.conf;
+
+        # Handle large file uploads
+        client_max_body_size 100m;
+        client_body_timeout 120s;
+
+        # Custom proxy headers if defined
+        {% if site_config.nginx_proxy_headers is defined %}
+        {% for header, value in site_config.nginx_proxy_headers.items() %}
+        proxy_set_header {{ header | title }} {{ value }};
+        {% endfor %}
+        {% endif %}
+    }
+
+    # Handle static assets if they exist
+    location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot|pdf)$ {
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+        include /etc/nginx/includes/proxy_headers.conf;
+
+        # Cache static files
+        expires 1h;
+        add_header Cache-Control "public";
+    }
+
+    # Health check endpoint
+    location /health {
+        proxy_pass http://127.0.0.1:{{ site_config.port }}/health;
+        include /etc/nginx/includes/proxy_headers.conf;
+        access_log off;
+    }
+
+    # Deny access to sensitive files
+    location ~ /\.(env|git|htaccess) {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Security headers
+    include /etc/nginx/includes/security_headers.conf;
+}
+{% endfor %}
+=== ./sites/node_app_with_static.conf.j2 ===
+# roles/nginx/templates/sites/node_app_with_static.conf.j2
+{% for domain in site_config.domains %}
+{% if site_config.subdomain_static_dirs is defined and domain in site_config.subdomain_static_dirs %}
+# Static subdomain server for {{ domain }}
+server {
+    listen 80;
+    server_name {{ domain }};
+
+    {% if site_config.ssl_enabled | default(false) %}
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS static server for {{ domain }}
+server {
+    listen 443 ssl http2;
+    server_name {{ domain }};
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/{{ site_name }}/key.pem;
+    include /etc/nginx/includes/ssl_common.conf;
+    {% else %}
+    # HTTP only configuration
+    {% endif %}
+
+    # Document root for static files
+    root {{ site_config.subdomain_static_dirs[domain] }};
+    index index.html index.htm;
+
+    # Logging
+    access_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_access.log main;
+    error_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_error.log;
+
+    # Static file serving
+    location / {
+        try_files $uri $uri/ =404;
+
+        # Cache static files
+        location ~* \.(exe|msi|dmg|pkg|deb|rpm|zip|tar\.gz|tar\.bz2)$ {
+            expires 1d;
+            add_header Cache-Control "public";
+            add_header Content-Disposition "attachment";
+        }
+
+        location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            access_log off;
+        }
+    }
+
+    # Security headers
+    include /etc/nginx/includes/security_headers.conf;
+}
+{% else %}
+# Node.js app server for {{ domain }}
+server {
+    listen 80;
+    server_name {{ domain }};
+
+    {% if site_config.ssl_enabled | default(false) %}
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS Node.js server for {{ domain }}
+server {
+    listen 443 ssl http2;
+    server_name {{ domain }};
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/{{ site_name }}/key.pem;
+    include /etc/nginx/includes/ssl_common.conf;
+    {% else %}
+    # HTTP only configuration
+    {% endif %}
+
+    # Logging
+    access_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_access.log main;
+    error_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_error.log;
+
+    # Rate limiting
+    limit_req zone=general burst=20 nodelay;
+
+    # Main proxy location
+    location / {
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+        include /etc/nginx/includes/proxy_headers.conf;
+
+        # Handle large file uploads
+        client_max_body_size 100m;
+        client_body_timeout 120s;
+
+        # Custom proxy headers if defined
+        {% if site_config.nginx_proxy_headers is defined %}
+        {% for header, value in site_config.nginx_proxy_headers.items() %}
+        proxy_set_header {{ header | title }} {{ value }};
+        {% endfor %}
+        {% endif %}
+    }
+
+    # API endpoints with different rate limiting
+    location /api/ {
+        limit_req zone=general burst=10 nodelay;
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+        include /etc/nginx/includes/proxy_headers.conf;
+    }
+
+    # Health check endpoint
+    location /health {
+        proxy_pass http://127.0.0.1:{{ site_config.port }}/health;
+        include /etc/nginx/includes/proxy_headers.conf;
+        access_log off;
+    }
+
+    # Security headers
+    include /etc/nginx/includes/security_headers.conf;
+}
+{% endif %}
+{% endfor %}
+=== ./sites/proxy_app.conf.j2 ===
+# roles/nginx/templates/sites/proxy_app.conf.j2
+{% for domain in site_config.domains %}
+# HTTP server for {{ domain }} - redirect to HTTPS
+server {
+    listen 80;
+    server_name {{ domain }};
+
+    {% if site_config.ssl_enabled | default(false) %}
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS server for {{ domain }}
+server {
+    listen 443 ssl http2;
+    server_name {{ domain }};
+
+    # SSL Configuration
+    ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/{{ site_name }}/key.pem;
+    include /etc/nginx/includes/ssl_common.conf;
+    {% else %}
+    # HTTP only configuration
+    {% endif %}
+
+    # Logging
+    access_log /var/log/nginx/{{ site_name }}_access.log main;
+    error_log /var/log/nginx/{{ site_name }}_error.log;
+    {% if site_config.debug_logging | default(false) %}
+    error_log /var/log/nginx/{{ site_name }}_debug.log debug;
+    {% endif %}
+
+    # Rate limiting
+    limit_req zone=general burst=20 nodelay;
+
+    {% if site_config.websocket_paths is defined %}
+    # WebSocket specific locations
+    {% for path in site_config.websocket_paths %}
+    location {{ path }} {
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+
+        # WebSocket specific headers and timeouts
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_cache_bypass $http_upgrade;
+
+        # WebSocket timeouts (longer than regular HTTP)
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 86400s;
+        proxy_read_timeout 86400s;
+    }
+    {% endfor %}
+    {% endif %}
+
+    # Main proxy location
+    location / {
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+
+        {% if site_config.websocket_support | default(false) %}
+        # WebSocket support for main location - custom headers and timeouts
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_cache_bypass $http_upgrade;
+
+        # WebSocket timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 86400s;
+        proxy_read_timeout 86400s;
+        {% else %}
+        # Regular HTTP proxy - use include file
+        include /etc/nginx/includes/proxy_headers.conf;
+        {% endif %}
+
+        # Handle large file uploads
+        client_max_body_size 100m;
+        client_body_timeout 120s;
+
+        # Custom proxy headers if defined
+        {% if site_config.nginx_proxy_headers is defined %}
+        {% for header, value in site_config.nginx_proxy_headers.items() %}
+        proxy_set_header {{ header | title }} {{ value }};
+        {% endfor %}
+        {% endif %}
+    }
+
+    # Health check endpoint if available
+    location /health {
+        proxy_pass http://127.0.0.1:{{ site_config.port }}/health;
+        include /etc/nginx/includes/proxy_headers.conf;
+        access_log off;
+    }
+
+    # API endpoints with different rate limiting
+    location /api/ {
+        limit_req zone=general burst=10 nodelay;
+        proxy_pass http://127.0.0.1:{{ site_config.port }};
+        include /etc/nginx/includes/proxy_headers.conf;
+
+        {% if site_config.websocket_support | default(false) %}
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        {% endif %}
+    }
+
+    # Deny access to sensitive files
+    location ~ /\.(env|git|htaccess) {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Security headers
+    include /etc/nginx/includes/security_headers.conf;
+}
+{% endfor %}
+
+{% if site_config.websocket_support | default(false) %}
+# WebSocket connection upgrade mapping
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+{% endif %}

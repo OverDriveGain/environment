@@ -5,26 +5,53 @@
     mode: '0755'
   loop:
     - "{{ nginx_host_config_path }}"
+    - "{{ nginx_host_config_path }}/includes"
+    - "{{ nginx_host_config_path }}/sites"
     - "{{ nginx_host_logs_path }}"
     - "{{ nginx_host_ssl_path }}"
 
 - name: Configure Nginx settings
   set_fact:
     nginx_image: "nginx:stable-alpine"
-    nginx_cfg_dir: templates/nginx.conf.j2
     nginx_container_name: "{{ nginx_container_name }}"
     nginx_host_config_path: "{{ nginx_host_config_path }}"
     nginx_host_logs_path: "{{ nginx_host_logs_path }}"
     nginx_host_ssl_path: "{{ nginx_host_ssl_path }}"
     nginx_ports: "{{ nginx_ports }}"
 
-- name: Copy Nginx configuration
+- name: Generate main nginx.conf
   ansible.builtin.template:
-    src: "{{ nginx_cfg_dir }}"
+    src: "nginx.conf.j2"
     dest: "{{ nginx_host_config_path }}/nginx.conf"
     mode: '0644'
-  register: nginx_config
+  register: nginx_main_config
 
+- name: Generate include files (for nginx includes only)
+  ansible.builtin.template:
+    src: "includes/{{ item }}.j2"
+    dest: "{{ nginx_host_config_path }}/includes/{{ item }}"
+    mode: '0644'
+  loop:
+    - ssl_common.conf
+    - proxy_headers.conf
+  register: nginx_includes
+
+- name: Create sites directory
+  ansible.builtin.file:
+    path: "{{ nginx_host_config_path }}/sites"
+    state: directory
+    mode: '0755'
+
+- name: Generate individual site configurations
+  ansible.builtin.template:
+    src: "sites/{{ item.value.template | default('default') }}.conf.j2"
+    dest: "{{ nginx_host_config_path }}/sites/{{ item.key }}.conf"
+    mode: '0644'
+  loop: "{{ websites | dict2items }}"
+  vars:
+    site_name: "{{ item.key }}"
+    site_config: "{{ item.value }}"
+  register: nginx_site_configs
 
 - name: Pull Nginx image
   community.docker.docker_image:
@@ -33,12 +60,16 @@
     force_source: true
   register: nginx_pull
 
+- name: Check if any configuration changed
+  set_fact:
+    nginx_config_changed: "{{ nginx_main_config.changed or nginx_includes.changed or nginx_site_configs.changed or nginx_pull.changed }}"
+
 - name: Remove existing Nginx container
   community.docker.docker_container:
     name: "{{ nginx_container_name }}"
     state: absent
     force_kill: true
-  when: nginx_config.changed or nginx_pull.changed
+  when: nginx_config_changed
 
 - name: Fix permissions for Docker-mounted nginx files
   block:
@@ -67,6 +98,8 @@
     network_mode: host
     volumes:
       - "{{ nginx_host_config_path }}/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "{{ nginx_host_config_path }}/includes:/etc/nginx/includes:ro"
+      - "{{ nginx_host_config_path }}/sites:/etc/nginx/sites:ro"
       - "{{ nginx_host_logs_path }}:/var/log/nginx"
       - "{{ nginx_host_ssl_path }}:/etc/nginx/ssl:ro"
       - "{{ websites_dist_dir }}:{{ websites_dist_dir }}"
@@ -82,20 +115,61 @@
       max-file: "3"
   register: nginx_container
 
-- name: Wait for Nginx to be healthy
-  ansible.builtin.wait_for:
-    host: localhost
-    port: 80
-    timeout: 30
+- name: Wait for container to be running and stable
+  ansible.builtin.pause:
+    seconds: 15
   when: nginx_container.changed
 
-- name: Verify Nginx status
+- name: Wait for container to be fully ready
+  community.docker.docker_container_info:
+    name: "{{ nginx_container_name }}"
+  register: container_info
+  retries: 10
+  delay: 3
+  until: container_info.container.State.Status == "running" and not container_info.container.State.Restarting
+
+- name: Display container status
+  ansible.builtin.debug:
+    msg: "Container {{ nginx_container_name }} is {{ container_info.container.State.Status }}"
+
+- name: Test nginx configuration inside container
+  community.docker.docker_container_exec:
+    container: "{{ nginx_container_name }}"
+    command: nginx -t
+  register: nginx_test
+  ignore_errors: yes
+  when: container_info.container.State.Status == "running"
+
+- name: Display nginx configuration test result
+  ansible.builtin.debug:
+    msg: "Nginx config test: {{ nginx_test.stdout | default('') }}{{ nginx_test.stderr | default('No output') }}"
+  when: nginx_test is defined
+
+- name: Wait for health check port via Docker exec
+  community.docker.docker_container_exec:
+    container: "{{ nginx_container_name }}"
+    command: sh -c "for i in $(seq 1 30); do wget -q --spider http://localhost:10079/healthz && exit 0 || sleep 2; done; exit 1"
+  register: health_wait
+  ignore_errors: yes
+  when: nginx_container.changed
+
+- name: Verify nginx is responding to health checks
   ansible.builtin.uri:
     url: "http://localhost:10079/healthz"
     method: GET
     return_content: yes
     status_code: 200
-  register: health_check
-  retries: 5
-  delay: 10
-  until: health_check.status == 200
+    timeout: 5
+  register: external_health_check
+  retries: 3
+  delay: 5
+  ignore_errors: yes
+
+- name: Display health check results
+  ansible.builtin.debug:
+    msg: |
+      Container health wait: {{ 'Success' if health_wait.rc == 0 else 'Failed' }}
+      External health check: {{ 'Success' if external_health_check.status == 200 else 'Failed' }}
+      {% if external_health_check.status is defined %}
+      Response: {{ external_health_check.content | default('No content') }}
+      {% endif %}
