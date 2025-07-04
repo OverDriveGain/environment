@@ -25,6 +25,7 @@
     dest: "{{ nginx_host_config_path }}/nginx.conf"
     mode: '0644'
   register: nginx_main_config
+  when: target_website is not defined
 
 - name: Generate include files (for nginx includes only)
   ansible.builtin.template:
@@ -35,6 +36,7 @@
     - ssl_common.conf
     - proxy_headers.conf
   register: nginx_includes
+  when: target_website is not defined
 
 - name: Create sites directory
   ansible.builtin.file:
@@ -51,25 +53,55 @@
   vars:
     site_name: "{{ item.key }}"
     site_config: "{{ item.value }}"
+  when: >
+    target_website is not defined or 
+    target_website == item.key
   register: nginx_site_configs
 
+- name: Reload nginx configuration (without container restart)
+  community.docker.docker_container_exec:
+    container: "{{ nginx_container_name }}"
+    command: nginx -s reload
+  when:
+    - target_website is defined
+    - nginx_site_configs.changed
+  ignore_errors: yes
+  tags: ['nginx:reload']
+
+- name: Display reload result for single website
+  ansible.builtin.debug:
+    msg: "Nginx configuration reloaded for website: {{ target_website }}"
+  when:
+    - target_website is defined
+    - nginx_site_configs.changed
+
+- name: Skip full container rebuild when targeting single website
+  ansible.builtin.debug:
+    msg: "Skipping full nginx container rebuild - only reloaded config for {{ target_website }}"
+  when: target_website is defined
+
+# Full container management (only when not targeting single website)
 - name: Pull Nginx image
   community.docker.docker_image:
     name: "{{ nginx_image }}"
     source: pull
     force_source: true
   register: nginx_pull
+  when: target_website is not defined
 
 - name: Check if any configuration changed
   set_fact:
     nginx_config_changed: "{{ nginx_main_config.changed or nginx_includes.changed or nginx_site_configs.changed or nginx_pull.changed }}"
+  when: target_website is not defined
 
 - name: Remove existing Nginx container
   community.docker.docker_container:
     name: "{{ nginx_container_name }}"
     state: absent
     force_kill: true
-  when: nginx_config_changed
+  when:
+    - target_website is not defined
+    - nginx_config_changed
 
 - name: Fix permissions for Docker-mounted nginx files
   block:
@@ -88,6 +120,44 @@
         mode: '0755'
         recurse: yes
       become: yes
+  when: target_website is not defined
+
+- name: Initialize all_subdomain_dirs
+  set_fact:
+    all_subdomain_dirs: []
+
+- name: Append all subdomain_static_dirs values (paths) from each website dict
+  set_fact:
+    all_subdomain_dirs: >-
+      {{
+        all_subdomain_dirs +
+        (item.subdomain_static_dirs.values() | list if item.subdomain_static_dirs is defined else [])
+      }}
+  loop: "{{ websites.values() }}"
+
+- name: Print all mounted subdomain static directories
+  debug:
+    msg: "{{ all_subdomain_dirs }}"
+
+- name: Create subdomain static directories inside nginx container
+  become: yes
+  ansible.builtin.command: >
+    docker exec nginx-container mkdir -p {{ item }}
+  loop: "{{ all_subdomain_dirs }}"
+  ignore_errors: yes
+
+- name: Remove duplicates from all_subdomain_dirs
+  set_fact:
+    all_subdomain_dirs: "{{ all_subdomain_dirs | unique }}"
+
+- name: Prepare subdomain static mounts
+  set_fact:
+    subdomain_static_mounts: "{{ all_subdomain_dirs | map('regex_replace', '^(.*)$', '\\1:\\1') | list }}"
+
+- name: Print subdomain_static_mounts
+  debug:
+    msg: "{{ subdomain_static_mounts }}"
+
 
 - name: Deploy Nginx container
   community.docker.docker_container:
@@ -96,13 +166,17 @@
     state: started
     restart_policy: unless-stopped
     network_mode: host
-    volumes:
-      - "{{ nginx_host_config_path }}/nginx.conf:/etc/nginx/nginx.conf:ro"
-      - "{{ nginx_host_config_path }}/includes:/etc/nginx/includes:ro"
-      - "{{ nginx_host_config_path }}/sites:/etc/nginx/sites:ro"
-      - "{{ nginx_host_logs_path }}:/var/log/nginx"
-      - "{{ nginx_host_ssl_path }}:/etc/nginx/ssl:ro"
-      - "{{ websites_dist_dir }}:{{ websites_dist_dir }}"
+    volumes: >-
+      {{
+        [
+          nginx_host_config_path + '/nginx.conf:/etc/nginx/nginx.conf:ro',
+          nginx_host_config_path + '/includes:/etc/nginx/includes:ro',
+          nginx_host_config_path + '/sites:/etc/nginx/sites:ro',
+          nginx_host_logs_path + ':/var/log/nginx',
+          nginx_host_ssl_path + ':/etc/nginx/ssl:ro',
+          websites_dist_dir + ':' + websites_dist_dir
+        ] + (subdomain_static_mounts | default([]))
+      }}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:10079/healthz || exit 1"]
       interval: 30s
@@ -114,11 +188,31 @@
       max-size: "100m"
       max-file: "3"
   register: nginx_container
+  when: target_website is not defined
+
+- name: Ensure subdomain directories have correct permissions
+  file:
+    path: "{{ item }}"
+    mode: '0755'
+    recurse: yes
+  loop: "{{ all_subdomain_dirs }}"
+  become: yes
+
+- name: Ensure subdomain directories are owned by nginx user
+  file:
+    path: "{{ item }}"
+    owner: "101"
+    group: "101"
+    recurse: yes
+  loop: "{{ all_subdomain_dirs }}"
+  become: yes
 
 - name: Wait for container to be running and stable
   ansible.builtin.pause:
     seconds: 15
-  when: nginx_container.changed
+  when:
+    - target_website is not defined
+    - nginx_container.changed
 
 - name: Wait for container to be fully ready
   community.docker.docker_container_info:
@@ -127,10 +221,12 @@
   retries: 10
   delay: 3
   until: container_info.container.State.Status == "running" and not container_info.container.State.Restarting
+  when: target_website is not defined
 
 - name: Display container status
   ansible.builtin.debug:
     msg: "Container {{ nginx_container_name }} is {{ container_info.container.State.Status }}"
+  when: target_website is not defined
 
 - name: Test nginx configuration inside container
   community.docker.docker_container_exec:
@@ -138,12 +234,16 @@
     command: nginx -t
   register: nginx_test
   ignore_errors: yes
-  when: container_info.container.State.Status == "running"
+  when:
+    - target_website is not defined
+    - container_info.container.State.Status == "running"
 
 - name: Display nginx configuration test result
   ansible.builtin.debug:
     msg: "Nginx config test: {{ nginx_test.stdout | default('') }}{{ nginx_test.stderr | default('No output') }}"
-  when: nginx_test is defined
+  when:
+    - target_website is not defined
+    - nginx_test is defined
 
 - name: Wait for health check port via Docker exec
   community.docker.docker_container_exec:
@@ -151,7 +251,9 @@
     command: sh -c "for i in $(seq 1 30); do wget -q --spider http://localhost:10079/healthz && exit 0 || sleep 2; done; exit 1"
   register: health_wait
   ignore_errors: yes
-  when: nginx_container.changed
+  when:
+    - target_website is not defined
+    - nginx_container.changed
 
 - name: Verify nginx is responding to health checks
   ansible.builtin.uri:
@@ -164,6 +266,7 @@
   retries: 3
   delay: 5
   ignore_errors: yes
+  when: target_website is not defined
 
 - name: Display health check results
   ansible.builtin.debug:
@@ -173,3 +276,4 @@
       {% if external_health_check.status is defined %}
       Response: {{ external_health_check.content | default('No content') }}
       {% endif %}
+  when: target_website is not defined

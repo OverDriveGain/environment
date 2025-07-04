@@ -26,14 +26,20 @@ server {
 
     # Document root for static files
     root {{ site_config.subdomain_static_dirs[domain] }};
-    index index.html index.htm;
 
     # Logging
     access_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_access.log main;
     error_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_error.log;
 
-    # Static file serving
+    # Static file serving with directory listing
     location / {
+        # Enable directory listing
+        autoindex on;
+        autoindex_exact_size off;
+        autoindex_localtime on;
+        autoindex_format html;
+
+        # Try to serve files directly, then show directory listing
         try_files $uri $uri/ =404;
 
         # Cache static files
@@ -47,6 +53,12 @@ server {
             expires 1y;
             add_header Cache-Control "public, immutable";
             access_log off;
+        }
+
+        # Cache JSON and XML files (common in repositories)
+        location ~* \.(json|xml)$ {
+            expires 1h;
+            add_header Cache-Control "public";
         }
     }
 

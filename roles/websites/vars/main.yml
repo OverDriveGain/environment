@@ -61,8 +61,8 @@ websites:
         ssl_email: "admin@quotomate.aero"
         unsafe_eval: true # Used for javascript client side rendered
         subdomain_static_dirs:
-            'windows.quotomate.com': '/var/www/quotomate/windows'
-            'linux.quotomate.com': '/var/www/quotomate/linux'
+            'windows.quotomate.com': '/home/ubuntu/quotomate/win32/update/storage/repository'
+            'linux.quotomate.com': '/home/ubuntu/quotomate/linux/update/storage/repository'
         template: 'node_app_with_static'
     n8n:
         domains: [ 'n8n.kaxtus.com' ]
