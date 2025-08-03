@@ -24,4 +24,13 @@ local_host_dict : {
     "service_name": "ssh_jump_kaxtus_music",
     "comments": "Music jumphost to run on berlin desktop"
   },
+  "berlin_casabot": {
+    "username": "manar",
+    "port": "10085", # ToDo this should be identical to websites/var/music
+    "local_ssh_port": "5000", # ToDo this should be identical to websites/var/music
+    "ssh_key_dir": "/home/manar/.ssh/id_rsa",
+    "ssh_pub_key_dir": "/home/manar/.ssh/id_rsa.pub",
+    "service_name": "ssh_jump_quotomate_casabot",
+    "comments": "Quotomate casabot jumphost to run on berlin desktop"
+  },
 }

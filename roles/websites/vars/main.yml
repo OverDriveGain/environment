@@ -100,3 +100,9 @@ websites:
         cors: false
         template: 'proxy_app'
         unsafe_eval: true
+    casabot:
+        domains: ['casabot.quotomate.com']
+        port: 10085
+        ssl_enabled: true
+        ssl_email: "info@quotomate.com"
+        template: 'proxy_app'
