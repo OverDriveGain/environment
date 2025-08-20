@@ -94,7 +94,7 @@ server {
     error_log /var/log/nginx/{{ site_name }}_{{ domain | replace('.', '_') }}_error.log;
 
     # Rate limiting
-    limit_req zone=general burst=20 nodelay;
+    #limit_req zone=general burst=20 nodelay;
 
     # Main proxy location
     location / {
@@ -115,7 +115,7 @@ server {
 
     # API endpoints with different rate limiting
     location /api/ {
-        limit_req zone=general burst=10 nodelay;
+        #limit_req zone=general burst=10 nodelay;
         proxy_pass http://127.0.0.1:{{ site_config.port }};
         include /etc/nginx/includes/proxy_headers.conf;
     }

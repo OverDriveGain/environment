@@ -31,7 +31,7 @@ server {
     {% endif %}
 
     # Rate limiting
-    limit_req zone=general burst=20 nodelay;
+    #limit_req zone=general burst=20 nodelay;
 
     {% if site_config.websocket_paths is defined %}
     # WebSocket specific locations
@@ -102,7 +102,7 @@ server {
 
     # API endpoints with different rate limiting
     location /api/ {
-        limit_req zone=general burst=10 nodelay;
+        #limit_req zone=general burst=10 nodelay;
         proxy_pass http://127.0.0.1:{{ site_config.port }};
         include /etc/nginx/includes/proxy_headers.conf;
 

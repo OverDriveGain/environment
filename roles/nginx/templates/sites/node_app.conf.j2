@@ -28,7 +28,7 @@ server {
     error_log /var/log/nginx/{{ site_name }}_error.log;
 
     # Rate limiting
-    limit_req zone=general burst=20 nodelay;
+    #limit_req zone=general burst=20 nodelay;
 
     # Main proxy location
     location / {
