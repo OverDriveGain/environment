@@ -174,7 +174,8 @@
           nginx_host_config_path + '/sites:/etc/nginx/sites:ro',
           nginx_host_logs_path + ':/var/log/nginx',
           nginx_host_ssl_path + ':/etc/nginx/ssl:ro',
-          websites_dist_dir + ':' + websites_dist_dir
+          websites_dist_dir + ':' + websites_dist_dir,
+          '/var/www/letsencrypt:/var/www/letsencrypt:ro'
         ] + (subdomain_static_mounts | default([]))
       }}
     healthcheck:

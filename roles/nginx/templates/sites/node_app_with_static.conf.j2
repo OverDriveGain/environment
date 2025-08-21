@@ -5,10 +5,15 @@
 server {
     listen 80;
     server_name {{ domain }};
-
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+        try_files $uri =404;
+    }
     {% if site_config.ssl_enabled | default(false) %}
     # Redirect all HTTP traffic to HTTPS
-    return 301 https://$server_name$request_uri;
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
 }
 
 # HTTPS static server for {{ domain }}
@@ -70,10 +75,15 @@ server {
 server {
     listen 80;
     server_name {{ domain }};
-
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+        try_files $uri =404;
+    }
     {% if site_config.ssl_enabled | default(false) %}
     # Redirect all HTTP traffic to HTTPS
-    return 301 https://$server_name$request_uri;
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
 }
 
 # HTTPS Node.js server for {{ domain }}

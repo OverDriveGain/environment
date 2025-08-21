@@ -12,6 +12,21 @@
     update_cache: yes
   become: yes
 
+- name: Create webroot directory for Let's Encrypt challenges
+  file:
+    path: /var/www/letsencrypt
+    state: directory
+    mode: '0755'
+  become: yes
+
+
+- name: Create webroot directory for Let's Encrypt challenges
+  file:
+    path: /var/www/letsencrypt
+    state: directory
+    mode: '0755'
+  become: yes
+
 - name: Create SSL directories for each website in mounted directory
   file:
     path: "{{ nginx_host_ssl_path }}/{{ item.key }}"
@@ -21,35 +36,30 @@
   when: item.value.ssl_enabled | default(false)
   become: yes
 
-- name: Create directory for certificate renewal hooks
-  file:
-    path: /etc/letsencrypt/renewal-hooks/{{ item }}
-    state: directory
-    mode: '0755'
-  become: yes
-  loop:
-    - pre
-    - post
-    - deploy
-
-- name: Generate certificates for each website
+- name: Generate certificates for each website using webroot
   command: >
-    certbot certonly --standalone
+    certbot certonly --webroot
+    --webroot-path /var/www/letsencrypt
     --email {{ item.value.ssl_email }}
+    --cert-name {{ item.value.domains[0] }}
     {% for domain in item.value.domains %}
     -d {{ domain }}
     {% endfor %}
     --agree-tos
     --non-interactive
-    --debug
+    --expand
+    --keep-until-expiring
     {% if lets_encrypt_staging %}
     --staging
     {% endif %}
-  args:
-    creates: "/etc/letsencrypt/live/{{ item.value.domains[0] }}/fullchain.pem"
   become: yes
   loop: "{{ websites | dict2items }}"
   register: cert_generation
+  when: item.value.ssl_enabled | default(false)
+
+- name: Display certificate generation output
+  debug:
+    var: cert_generation
 
 - name: Make certificates readable
   file:
@@ -58,33 +68,42 @@
     recurse: yes
   become: yes
 
-- name: Copy fullchain.pem certificates
+- name: Copy fullchain.pem certificates to nginx directory
   copy:
     src: "/etc/letsencrypt/live/{{ item.value.domains[0] }}/fullchain.pem"
     dest: "{{ nginx_host_ssl_path }}/{{ item.key }}/cert.pem"
     remote_src: yes
     mode: "0644"
+    follow: yes
   loop: "{{ websites | dict2items }}"
   become: yes
   when: item.value.ssl_enabled | default(false)
 
-- name: Copy privkey.pem certificates
+- name: Copy privkey.pem certificates to nginx directory
   copy:
     src: "/etc/letsencrypt/live/{{ item.value.domains[0] }}/privkey.pem"
     dest: "{{ nginx_host_ssl_path }}/{{ item.key }}/key.pem"
     remote_src: yes
     mode: "0644"
+    follow: yes
   loop: "{{ websites | dict2items }}"
   when: item.value.ssl_enabled | default(false)
   become: yes
 
-- name: Set up automatic renewal
+- name: Create certificate renewal script
+  template:
+    src: templates/certbot-renewal.sh.j2
+    dest: /usr/local/bin/certbot-renewal.sh
+    mode: '0755'
+  become: yes
+
+- name: Set up automatic renewal with webroot
   cron:
     name: "Certbot Renewal"
     minute: "0"
     hour: "0"
     day: "12"
-    job: "sudo certbot renew --quiet --no-self-upgrade --preferred-challenges http-01 && cp /etc/letsencrypt/live/*/fullchain.pem {{ nginx_host_ssl_path }}/*/cert.pem && cp /etc/letsencrypt/live/*/privkey.pem {{ nginx_host_ssl_path }}/*/key.pem && docker compose restart nginx"
+    job: "/usr/local/bin/certbot-renewal.sh >> /var/log/certbot-renewal.log 2>&1"
   when: certbot_auto_renew
 
 - name: Verify certificates
