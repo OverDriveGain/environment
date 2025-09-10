@@ -74,6 +74,7 @@ websites:
         websocket_paths:
             - /rest/push
         debug_logging: true
+        unsafe_eval: true
         template: 'proxy_app'
     rieddt:
         domains: [ 'rieddt.com', 'www.rieddt.com' ]
