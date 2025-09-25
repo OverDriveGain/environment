@@ -33,6 +33,7 @@
     env:
       NODE_ENV: "production"
       API_PORT: "{{ port }}"
+      EMAIL_PASSWORD: "tzkoagahtluuouzi"
     working_dir: "/app/{{ app_js_dir }}"
     network_mode: host
     command: >
