@@ -33,13 +33,20 @@
     env:
       NODE_ENV: "production"
       API_PORT: "{{ port }}"
+      PORT: "{{ port }}"
+      NITRO_PORT: "{{ port }}"
       EMAIL_PASSWORD: "tzkoagahtluuouzi"
+      DB_HOST: "kaxtus.com"
+      DB_PORT: "5432"
+      DB_NAME: "aait"
+      DB_USER: "amin"
+      DB_PASSWORD: "amin333"
     working_dir: "/app/{{ app_js_dir }}"
     network_mode: host
     command: >
       /bin/bash -c "
       npm install &&
-      node app.js"
+      node index.mjs"
     state: started
     restart_policy: always
 

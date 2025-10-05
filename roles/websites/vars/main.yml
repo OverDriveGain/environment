@@ -56,14 +56,14 @@ websites:
         docker_image_name: 'quotomate-website'
         root_name: 'quotomate-website'
         port: 10083
-        app_js_dir: 'formserver'
+        app_js_dir: '.output/server'
         ssl_enabled: true
         ssl_email: "admin@quotomate.com"
         unsafe_eval: true # Used for javascript client side rendered
         subdomain_static_dirs:
             'windows.quotomate.com': '/home/ubuntu/quotomate/win32/update/storage/repository'
             'linux.quotomate.com': '/home/ubuntu/quotomate/linux/update/storage/repository'
-        template: 'node_app'
+        template: 'node_app_with_static'
     n8n:
         domains: [ 'n8n.kaxtus.com' ]
         port: 5678
