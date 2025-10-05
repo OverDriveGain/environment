@@ -5,6 +5,7 @@
 server {
     listen 80;
     server_name {{ domain }};
+    {% include 'includes/redirect_www_to_non_www.j2' %}
     location /.well-known/acme-challenge/ {
         root /var/www/letsencrypt;
         try_files $uri =404;
@@ -20,6 +21,8 @@ server {
 server {
     listen 443 ssl http2;
     server_name {{ domain }};
+    {% include 'includes/redirect_www_to_non_www.j2' %}
+
 
     # SSL Configuration
     ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;
@@ -75,6 +78,7 @@ server {
 server {
     listen 80;
     server_name {{ domain }};
+    {% include 'includes/redirect_www_to_non_www.j2' %}
     location /.well-known/acme-challenge/ {
         root /var/www/letsencrypt;
         try_files $uri =404;
@@ -90,6 +94,7 @@ server {
 server {
     listen 443 ssl http2;
     server_name {{ domain }};
+    {% include 'includes/redirect_www_to_non_www.j2' %}
 
     # SSL Configuration
     ssl_certificate /etc/nginx/ssl/{{ site_name }}/cert.pem;

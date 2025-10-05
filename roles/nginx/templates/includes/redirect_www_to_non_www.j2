@@ -1,0 +1,5 @@
+{% if domain.startswith('www.') %}
+# Redirect www to non-www for the given domain
+set $redirect_target {{ domain[4:] }};
+return 301 $scheme://$redirect_target$request_uri;
+{% endif %}

@@ -98,7 +98,7 @@ websites:
         container_name: plausible
         ssl_enabled: true
         ssl_email: "placeholder"
-        cors: false
+        cors: true
         template: 'proxy_app'
         unsafe_eval: true
     casabot:
