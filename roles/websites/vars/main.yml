@@ -10,7 +10,7 @@ websites:
         ssl_email: "admin@kaxtus.com"
         template: 'static_site'
     gaspi:
-        domains: ['gaspi.aero', 'www.gaspi.aero']
+        domains: ['gaspi.aero', 'www.gaspi.aero', 'www.gaspico.com', 'gaspico.com']
         repo_url: 'git@github.com:OverDriveGain/gaspi.git'
         docker_image_name: 'gaspi-website'
         root_name: 'gaspi-website'
