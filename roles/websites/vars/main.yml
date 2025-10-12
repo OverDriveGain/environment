@@ -99,6 +99,7 @@ websites:
         ssl_enabled: true
         ssl_email: "placeholder"
         cors: true
+        websocket_support: true
         template: 'proxy_app'
         unsafe_eval: true
     casabot:
