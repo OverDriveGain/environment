@@ -18,7 +18,7 @@ local_host_dict : {
   "berlin_music": {
     "username": "manar",
     "port": "10082", # ToDo this should be identical to websites/var/music
-    "local_ssh_port": "10082", # ToDo this should be identical to websites/var/music
+    "local_ssh_port": "10082", # This is where the music service is running on host
     "ssh_key_dir": "/home/manar/.ssh/id_rsa",
     "ssh_pub_key_dir": "/home/manar/.ssh/id_rsa.pub",
     "service_name": "ssh_jump_kaxtus_music",
@@ -26,10 +26,19 @@ local_host_dict : {
   },
   "berlin_casabot": {
     "username": "manar",
-    "port": "10085", # ToDo this should be identical to websites/var/music
-    "local_ssh_port": "5000", # ToDo this should be identical to websites/var/music
+    "port": "10085", # ToDo this should be identical to websites/var/casabot
+    "local_ssh_port": "5000", # this is where the casabot service is started on host
     "ssh_key_dir": "/home/manar/.ssh/id_rsa",
     "ssh_pub_key_dir": "/home/manar/.ssh/id_rsa.pub",
+    "service_name": "ssh_jump_quotomate_casabot",
+    "comments": "Quotomate casabot jumphost to run on berlin desktop"
+  },
+  "laptop_casabot": {
+    "username": "manar.zaboub",
+    "port": "10085", # ToDo this should be identical to websites/var/casabot
+    "local_ssh_port": "5000", # this is where the casabot service is started on host
+    "ssh_key_dir": "/home/manar.zaboub/.ssh/id_rsa",
+    "ssh_pub_key_dir": "/home/manar.zaboub/.ssh/id_rsa.pub",
     "service_name": "ssh_jump_quotomate_casabot",
     "comments": "Quotomate casabot jumphost to run on berlin desktop"
   },
