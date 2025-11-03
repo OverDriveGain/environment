@@ -76,14 +76,6 @@ websites:
         debug_logging: true
         unsafe_eval: true
         template: 'proxy_app'
-    rieddt:
-        domains: [ 'rieddt.com', 'www.rieddt.com' ]
-        repo_url: 'git@github.com:kaxtus/rieddt.git'
-        ssl_enabled: true
-        ssl_email: "admin@reiddt.com"
-        root_name: 'rieddt-website'
-        bin_dir: './'
-        template: 'static_site'
     reiddt:
         domains: [ 'reiddt.com', 'www.reiddt.com' ]
         repo_url: 'git@github.com:kaxtus/rieddt.git'
