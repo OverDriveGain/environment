@@ -36,7 +36,7 @@ For the desktop in Berlin this mounts the 1tb free to `/mnt/1tb`.
 
 Adds entry to `~/.ssh/config` to connect to main cloud host defined in `inventory.ini`
 
-**Run using**: ./ansible.sh -l desktop -t ssh-client
+**Run using**: `./ansible.sh -l desktop -t ssh-client`
 
 ### musdowlow:
 
@@ -56,7 +56,7 @@ Install docker on host
 
 Creates a docker bridge named in `inventory.ini`
 
-**Run using**: `./ansible.sh -l cloud -t bridge`
+**Run using**: `./ansible.sh -l cloud -t bridge` #ToDo see if removed
 
 ### nginx:
 
@@ -98,7 +98,7 @@ Install websites available in `/roles/websites/vars/main.yml`. Automatically ins
 
 **Commands:**
 1. **All websites**: `./ansible.sh -l cloud -t websites`
-2. **Single website**: `./ansible.sh -l cloud -t websites -e "target_website=music"`
+2. **Single website**: `./ansible.sh -l cloud -t websites -e "target_website=n8n"`
 3. **Without SSL**: `./ansible.sh -l cloud -t websites -e "target_website=gaspi" -e "nossl=true"`
 4. **SSL only**: `./ansible.sh -l cloud -t websites -e "onlyssl=true"`
 
