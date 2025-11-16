@@ -12,29 +12,13 @@
     update_cache: yes
   become: yes
 
-- name: Create webroot directory for Let's Encrypt challenges
-  file:
-    path: /var/www/letsencrypt
-    state: directory
-    mode: '0755'
-  become: yes
-
 
 - name: Create webroot directory for Let's Encrypt challenges
   file:
     path: /var/www/letsencrypt
     state: directory
     mode: '0755'
-  become: yes
-
-- name: Create SSL directories for each website in mounted directory
-  file:
-    path: "{{ nginx_host_ssl_path }}/{{ item.key }}"
-    state: directory
-    mode: '0755'
-  loop: "{{ websites | dict2items }}"
-  when: item.value.ssl_enabled | default(false)
-  become: yes
+  become: no
 
 - name: Generate certificates for each website using webroot
   command: >
@@ -56,6 +40,7 @@
   loop: "{{ websites | dict2items }}"
   register: cert_generation
   when: item.value.ssl_enabled | default(false)
+  failed_when: false
 
 - name: Display certificate generation output
   debug:
@@ -68,6 +53,16 @@
     recurse: yes
   become: yes
 
+
+- name: Create SSL directories for each website in mounted directory
+  file:
+    path: "{{ nginx_host_ssl_path }}/{{ item.key }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ websites | dict2items }}"
+  when: item.value.ssl_enabled | default(false)
+  become: yes
+
 - name: Copy fullchain.pem certificates to nginx directory
   copy:
     src: "/etc/letsencrypt/live/{{ item.value.domains[0] }}/fullchain.pem"
@@ -78,6 +73,7 @@
   loop: "{{ websites | dict2items }}"
   become: yes
   when: item.value.ssl_enabled | default(false)
+  ignore_errors: yes
 
 - name: Copy privkey.pem certificates to nginx directory
   copy:
@@ -89,6 +85,7 @@
   loop: "{{ websites | dict2items }}"
   when: item.value.ssl_enabled | default(false)
   become: yes
+  ignore_errors: yes
 
 - name: Create certificate renewal script
   template:

@@ -1,3 +1,8 @@
+- name: Print info
+  debug:
+    msg: "Building kaxtus"
+  delegate_to: cloud
+
 - name: Set the facts
   set_fact:
     repo_url: "{{ websites[website].repo_url }}"

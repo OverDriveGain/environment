@@ -1,43 +1,402 @@
-- name: Run pg_dump to backup the database
-  command:
-    cmd: >
-      pg_dump -h localhost -U "{{ pg_user }}" -d "{{ db_name }}" -F c -b -v -f "{{ backup_file }}"
-  environment:
-    PGPASSWORD: "{{ pg_password }}"
-  delegate_to: 52.58.145.119
+---
+# ========================================
+# PostgreSQL Data Directory Migration
+# FROM: old host → TO: cloud host
+# ========================================
 
-- name: Copy the backup file to the local machine
-  fetch:
-    src: "{{ backup_file }}"
-    dest: "{{ backup_file }}"
-    flat: yes
-  delegate_to: 52.58.145.119  # Fetch the file from the old host to the local machine
+- name: Gather facts from source and destination hosts
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop:
+    - old
+    - cloud
+  run_once: true
 
-- name: Copy the backup file to the cloud host
-  copy:
-    src: "{{ backup_file }}"
-    dest: "{{ backup_file }}"
-  become: yes
+- name: Set host IP addresses
+  set_fact:
+    old_ip: "{{ hostvars['old'].ansible_host | default(hostvars['old'].ansible_default_ipv4.address) }}"
+    cloud_ip: "{{ hostvars['cloud'].ansible_host | default(hostvars['cloud'].ansible_default_ipv4.address) }}"
+  run_once: true
 
-- name: Copy the backup file directly into PostgreSQL container
-  shell: docker cp {{ backup_file }} "{{ postgres_container_name }}":"{{ db_dump_data_dir }}"
-  become: yes
+- name: Display migration plan
+  debug:
+    msg: |
+      ═══════════════════════════════════════════════════════════
+      🔄 POSTGRESQL DATA DIRECTORY MIGRATION
+      ═══════════════════════════════════════════════════════════
+      SOURCE:      old ({{ old_ip }})
+      DESTINATION: cloud ({{ cloud_ip }})
+      
+      Data Directory: {{ postgres_data_dir }}
+      
+      ⚠️  ACTIONS TO BE PERFORMED:
+      1. Stop PostgreSQL container on cloud
+      2. Backup existing data directory on cloud (if exists)
+      3. Stop PostgreSQL container on old
+      4. Transfer data directory: {{ old_ip }}:{{ postgres_data_dir }}
+                              TO: {{ cloud_ip }}:{{ postgres_data_dir }}
+      5. Set proper permissions on cloud
+      6. Start PostgreSQL container on cloud
+      ═══════════════════════════════════════════════════════════
+  delegate_to: localhost
+  run_once: true
 
-- name: Set proper ownership and permissions in container
+- name: Confirm data directory migration
+  pause:
+    prompt: |
+      
+      ⚠️  This will REPLACE the PostgreSQL data directory on cloud ({{ cloud_ip }})
+      ⚠️  with data from old ({{ old_ip }})
+      
+      Source:      {{ old_ip }}:{{ postgres_data_dir }}
+      Destination: {{ cloud_ip }}:{{ postgres_data_dir }}
+      
+      Type 'yes' to continue or 'no' to abort
+  register: migration_confirm
+  delegate_to: localhost
+  run_once: true
+
+- name: Abort if not confirmed
+  fail:
+    msg: "❌ Data directory migration cancelled by user"
+  when: migration_confirm.user_input | lower not in ['yes', 'y']
+  run_once: true
+
+# ========================================
+# STEP 1: Stop PostgreSQL on cloud
+# ========================================
+
+- name: Check if PostgreSQL container exists on cloud
   shell: |
-    docker exec "{{ postgres_container_name }}" chown postgres:postgres "{{ db_dump_data_dir }}"
-    docker exec "{{ postgres_container_name }}" chmod 644 "{{ db_dump_data_dir }}"
-  become: yes
-#
-#- name: Restore the database inside the Docker container
-#  docker_container:
-#    name: "{{ postgres_container_name }}"  # The name of the container
-#    command: >
-#      pg_restore -U "{{ pg_user }}" -d "{{ db_name }}" -v "{{ db_dump_data_dir }}aait_backup.dump"
-#    state: started
-#  become: yes
+    docker ps -a --filter "name={{ postgres_container_name }}" --format "{% raw %}{{.Names}}{% endraw %}"
+  register: cloud_container_check
+  delegate_to: cloud
+  changed_when: false
+  ignore_errors: true
 
-# Inside docker:
-# export PGPASSWORD=manar
-# createdb -h localhost -U postgres -w aait
-# pg_restore -h localhost -U postgres -C -d aait -v ./aait_backup.dump
+- name: Stop PostgreSQL container on cloud
+  docker_container:
+    name: "{{ postgres_container_name }}"
+    state: stopped
+  delegate_to: cloud
+  become: yes
+  when: cloud_container_check.stdout != ""
+
+- name: Wait for container to stop completely
+  pause:
+    seconds: 5
+  when: cloud_container_check.stdout != ""
+
+# ========================================
+# STEP 2: Backup existing cloud data
+# ========================================
+
+- name: Check if data directory exists on cloud
+  stat:
+    path: "{{ postgres_data_dir }}"
+  register: cloud_data_dir_stat
+  delegate_to: cloud
+  become: yes
+
+- name: Backup existing data directory on cloud
+  block:
+    - name: Create backup directory on cloud
+      file:
+        path: "{{ cloud_backup_dir | default('/var/backups/postgresql') }}"
+        state: directory
+        mode: '0755'
+      become: yes
+
+    - name: Generate backup directory name with timestamp
+      set_fact:
+        cloud_data_backup: "{{ cloud_backup_dir | default('/var/backups/postgresql') }}/pgdata_backup_{{ ansible_date_time.iso8601_basic_short }}"
+
+    - name: Copy existing data directory to backup location
+      copy:
+        src: "{{ postgres_data_dir }}/"
+        dest: "{{ cloud_data_backup }}/"
+        remote_src: yes
+        mode: preserve
+      become: yes
+
+    - name: Display backup location
+      debug:
+        msg: "✅ Cloud data directory backed up to: {{ cloud_data_backup }}"
+  when: cloud_data_dir_stat.stat.exists
+  delegate_to: cloud
+
+# ========================================
+# STEP 3: Stop PostgreSQL on old
+# ========================================
+
+- name: Check if PostgreSQL container exists on old
+  shell: |
+    docker ps -a --filter "name={{ postgres_container_name }}" --format "{% raw %}{{.Names}}{% endraw %}"
+  register: old_container_check
+  delegate_to: old
+  changed_when: false
+  ignore_errors: true
+
+- name: Stop PostgreSQL container on old
+  docker_container:
+    name: "{{ postgres_container_name }}"
+    state: stopped
+  delegate_to: old
+  become: yes
+  when: old_container_check.stdout != ""
+
+- name: Wait for old container to stop completely
+  pause:
+    seconds: 5
+  when: old_container_check.stdout != ""
+
+# ========================================
+# STEP 4: Verify source data directory
+# ========================================
+
+- name: Check if source data directory exists on old
+  stat:
+    path: "{{ postgres_data_dir }}"
+  register: old_data_dir_stat
+  delegate_to: old
+  become: yes
+
+- name: Fail if source data directory doesn't exist
+  fail:
+    msg: "❌ Source data directory {{ postgres_data_dir }} does not exist on old host"
+  when: not old_data_dir_stat.stat.exists
+
+- name: Get size of source data directory
+  shell: du -sh "{{ postgres_data_dir }}" | awk '{print $1}'
+  register: source_size
+  delegate_to: old
+  become: yes
+
+- name: Display source data size
+  debug:
+    msg: "📊 Source data directory size: {{ source_size.stdout }}"
+
+# ========================================
+# STEP 5: Prepare destination on cloud
+# ========================================
+
+- name: Remove existing data directory on cloud (if exists)
+  file:
+    path: "{{ postgres_data_dir }}"
+    state: absent
+  delegate_to: cloud
+  become: yes
+  when: cloud_data_dir_stat.stat.exists
+
+- name: Create parent directory for PostgreSQL data on cloud
+  file:
+    path: "{{ postgres_data_dir | dirname }}"
+    state: directory
+    mode: '0755'
+  delegate_to: cloud
+  become: yes
+
+# ========================================
+# STEP 6: Transfer data directory using archive method
+# ========================================
+
+- name: Create archive of PostgreSQL data on old
+  community.general.archive:
+    path: "{{ postgres_data_dir }}"
+    dest: /tmp/postgres_data_migration.tar.gz
+    format: gz
+  delegate_to: old
+  become: yes
+  register: archive_result
+
+- name: Display archive creation status
+  debug:
+    msg: "📦 Archive created on old host: /tmp/postgres_data_migration.tar.gz"
+
+- name: Download archive from old to control machine
+  fetch:
+    src: /tmp/postgres_data_migration.tar.gz
+    dest: /tmp/postgres_data_migration.tar.gz
+    flat: yes
+  delegate_to: old
+  become: yes
+
+- name: Display download status
+  debug:
+    msg: "⬇️  Archive downloaded to control machine"
+  run_once: true
+
+- name: Upload archive to cloud
+  copy:
+    src: /tmp/postgres_data_migration.tar.gz
+    dest: /tmp/postgres_data_migration.tar.gz
+  delegate_to: cloud
+  become: yes
+
+- name: Display upload status
+  debug:
+    msg: "⬆️  Archive uploaded to cloud host"
+
+- name: Extract PostgreSQL data on cloud
+  unarchive:
+    src: /tmp/postgres_data_migration.tar.gz
+    dest: "{{ postgres_data_dir | dirname }}"
+    remote_src: yes
+  delegate_to: cloud
+  become: yes
+
+- name: Display extraction status
+  debug:
+    msg: "📂 Data extracted on cloud host"
+
+- name: Cleanup archive on old
+  file:
+    path: /tmp/postgres_data_migration.tar.gz
+    state: absent
+  delegate_to: old
+  become: yes
+
+- name: Cleanup archive on cloud
+  file:
+    path: /tmp/postgres_data_migration.tar.gz
+    state: absent
+  delegate_to: cloud
+  become: yes
+
+- name: Cleanup archive on control machine
+  file:
+    path: /tmp/postgres_data_migration.tar.gz
+    state: absent
+  delegate_to: localhost
+  run_once: true
+
+- name: Display transfer result
+  debug:
+    msg: "✅ Data directory transferred successfully"
+
+# ========================================
+# STEP 7: Set proper permissions on cloud
+# ========================================
+
+- name: Get PostgreSQL user UID from container (if container exists)
+  shell: docker run --rm postgres:{{ postgres_version }} id -u postgres
+  register: postgres_uid
+  delegate_to: cloud
+  become: yes
+  changed_when: false
+  when: cloud_container_check.stdout != ""
+
+- name: Get PostgreSQL group GID from container (if container exists)
+  shell: docker run --rm postgres:{{ postgres_version }} id -g postgres
+  register: postgres_gid
+  delegate_to: cloud
+  become: yes
+  changed_when: false
+  when: cloud_container_check.stdout != ""
+
+- name: Set ownership of data directory to postgres user
+  file:
+    path: "{{ postgres_data_dir }}"
+    owner: "{{ postgres_uid.stdout | default('999') }}"
+    group: "{{ postgres_gid.stdout | default('999') }}"
+    recurse: yes
+    mode: '0700'
+  delegate_to: cloud
+  become: yes
+
+- name: Verify data directory permissions
+  stat:
+    path: "{{ postgres_data_dir }}"
+  register: final_permissions
+  delegate_to: cloud
+  become: yes
+
+- name: Display final permissions
+  debug:
+    msg: |
+      Data directory permissions:
+      Owner: {{ final_permissions.stat.pw_name | default(final_permissions.stat.uid) }}
+      Group: {{ final_permissions.stat.gr_name | default(final_permissions.stat.gid) }}
+      Mode:  {{ final_permissions.stat.mode }}
+
+# ========================================
+# STEP 8: Start PostgreSQL on cloud
+# ========================================
+
+- name: Start PostgreSQL container on cloud
+  docker_container:
+    name: "{{ postgres_container_name }}"
+    state: started
+  delegate_to: cloud
+  become: yes
+
+- name: Wait for PostgreSQL to be ready
+  shell: >
+    docker exec {{ postgres_container_name }}
+    pg_isready -U {{ pg_user | default('postgres') }}
+  register: pg_ready
+  delegate_to: cloud
+  become: yes
+  retries: 15
+  delay: 3
+  until: pg_ready.rc == 0
+
+# ========================================
+# STEP 9: Verify migration
+# ========================================
+
+- name: List databases on cloud
+  shell: >
+    docker exec {{ postgres_container_name }}
+    psql -U {{ pg_user | default('postgres') }} -l
+  register: db_list
+  delegate_to: cloud
+  become: yes
+  environment:
+    PGPASSWORD: "{{ pg_password | default('') }}"
+
+- name: Get size of destination data directory
+  shell: du -sh "{{ postgres_data_dir }}" | awk '{print $1}'
+  register: dest_size
+  delegate_to: cloud
+  become: yes
+
+- name: Display migration summary
+  debug:
+    msg: |
+      ✅ POSTGRESQL DATA DIRECTORY MIGRATION COMPLETED
+      
+      Source:           {{ old_ip }}:{{ postgres_data_dir }}
+      Destination:      {{ cloud_ip }}:{{ postgres_data_dir }}
+      
+      Source size:      {{ source_size.stdout }}
+      Destination size: {{ dest_size.stdout }}
+      
+      Cloud backup:     {{ cloud_data_backup | default('N/A - no existing data') }}
+      
+      Databases available:
+      {{ db_list.stdout }}
+
+# ========================================
+# STEP 10: Optional - Restart old container
+# ========================================
+
+- name: Ask to restart old PostgreSQL container
+  pause:
+    prompt: |
+      
+      Do you want to restart the PostgreSQL container on old host? (yes/no)
+  register: restart_old_confirm
+  delegate_to: localhost
+  run_once: true
+
+- name: Restart PostgreSQL container on old host
+  docker_container:
+    name: "{{ postgres_container_name | default('postgres-db-new') }}"
+    state: started
+  delegate_to: old
+  become: yes
+  when:
+    - old_container_check.stdout != ""
+    - restart_old_confirm.user_input | lower in ['yes', 'y']

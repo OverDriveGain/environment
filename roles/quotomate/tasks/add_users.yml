@@ -4,8 +4,8 @@
     password: "{{ postgres_users[0].password }}"
     state: present
     login_host: "127.0.0.1"
-    login_user: "{{ psql_login_user }}"  # Use the default postgres superuser
-    login_password: "{{ psql_login_password }}"
+    login_user: "{{ postgres_users[0].username }}"  # Use the default postgres superuser
+    login_password: "{{ postgres_users[0].password }}"
     port: "{{ postgres_port }}"
 
 - name: Create additional PostgreSQL users
@@ -14,8 +14,8 @@
     password: "{{ item.password }}"
     state: present
     login_host: "127.0.0.1"
-    login_user: "{{ psql_login_user }}"  # Use the default postgres superuser
-    login_password: "{{ psql_login_password }}"
+    login_user: "{{ postgres_users[0].username }}"  # Use the default postgres superuser
+    login_password: "{{ postgres_users[0].password }}"
     port: "{{ postgres_port }}"
   loop: "{{ postgres_users[1:] }}"
   when: postgres_users | length > 1

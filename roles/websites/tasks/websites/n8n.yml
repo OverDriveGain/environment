@@ -1,4 +1,76 @@
-- name: Print warning
+- name: Print info
   debug:
-    msg: "This will do nothing, it will only adjust the nginx on the host. Make sure docker-compose up is started in the host inside the ai-assistant directory"
+    msg: "Building n8n"
   delegate_to: cloud
+
+- name: Set the port and username for localhost
+  set_fact:
+    repo_url: "{{ websites[website].repo_url }}"
+    root_name: "{{ websites[website].root_name }}"
+    port: "{{ websites[website].port }}"
+    root_dir: "{{ websites_cloud_dir }}/{{ websites[website].root_name }}"
+    compose_file: "{{ websites[website].compose_file | default('docker-compose.yml') }}"
+
+- name: Ensure storage_meta directory exists
+  ansible.builtin.file:
+    path: "{{ websites_cloud_dir }}"
+    state: directory
+
+- name: Clone the repository
+  block:
+    - name: Try to clone repository
+      ansible.builtin.git:
+        repo: "{{ repo_url }}"
+        dest: "{{ root_dir }}"
+        update: yes
+        force: yes
+
+  rescue:
+    - name: Fix repository directory permissions
+      ansible.builtin.file:
+        path: "{{ root_dir }}"
+        state: directory
+        owner: "{{ host_username }}"
+        group: "{{ host_username }}"
+        recurse: yes
+        mode: '0755'
+      become: yes
+
+- name: Stop existing Docker containers (if any)
+  community.docker.docker_compose:
+    project_src: "{{ root_dir }}"
+    state: absent
+  ignore_errors: true
+
+- name: Check if docker-compose.yml exists
+  ansible.builtin.stat:
+    path: "{{ root_dir }}/{{ compose_file }}"
+  register: compose_file_stat
+
+- name: Fail if docker-compose.yml not found
+  ansible.builtin.fail:
+    msg: "docker-compose.yml not found at {{ root_dir }}/{{ compose_file }}"
+  when: not compose_file_stat.stat.exists
+
+- name: Start services with docker compose
+  community.docker.docker_compose:
+    project_src: "{{ root_dir }}"
+    files:
+      - "{{ compose_file }}"
+    state: present
+    pull: yes
+    build: yes
+  register: compose_output
+
+- name: Display docker compose output
+  ansible.builtin.debug:
+    var: compose_output
+
+- name: Wait for services to start
+  ansible.builtin.wait_for:
+    port: "{{ port }}"
+    timeout: 60
+
+- name: Print completion message
+  ansible.builtin.debug:
+    msg: "Docker Compose services for plausible are running at {{ root_dir }}"

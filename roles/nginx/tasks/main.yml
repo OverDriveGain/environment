@@ -53,6 +53,7 @@
   vars:
     site_name: "{{ item.key }}"
     site_config: "{{ item.value }}"
+    disable_ssl: "{{ nossl | default(false) }}"  # ✅ Pass nossl value to template
   when: >
     target_website is not defined or 
     target_website == item.key

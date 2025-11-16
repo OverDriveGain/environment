@@ -1,3 +1,41 @@
+- name: Gather facts about cloud host
+  setup:
+  delegate_to: "{{ groups['cloud'][0] }}"
+  delegate_facts: true
+  run_once: true
+
+- name: Set cloud host variables
+  set_fact:
+    cloud_host: "{{ groups['cloud'][0] }}"
+    cloud_ip: "{{ hostvars[groups['cloud'][0]].ansible_host | default(hostvars[groups['cloud'][0]].ansible_default_ipv4.address) }}"
+  run_once: true
+
+- name: Confirm PostgreSQL installation on cloud server
+  pause:
+    prompt: |
+      
+      ⚠️  WARNING: You are about to install PostgreSQL on the CLOUD server!
+      
+      Target Host: {{ cloud_host }}
+      IP Address:  {{ cloud_ip }}
+      
+      This will:
+        - Install PostgreSQL packages
+        - Configure database settings
+        - Potentially overwrite existing configurations
+      
+      Type 'yes' to continue or 'no' to abort
+  register: db_setup_confirm
+  delegate_to: localhost
+  run_once: true
+
+- name: Abort if not confirmed
+  fail:
+    msg: "❌ Database setup aborted by user"
+  when: db_setup_confirm.user_input | lower not in ['yes', 'y']
+  delegate_to: localhost
+  run_once: true
+
 - name: Install required packages
   apt:
     name:

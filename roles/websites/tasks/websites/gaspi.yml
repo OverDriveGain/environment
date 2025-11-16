@@ -1,3 +1,8 @@
+- name: Print info
+  debug:
+    msg: "Building GASPI"
+  delegate_to: cloud
+
 - name: Set the port and username for localhost
   set_fact:
     docker_image_name: "{{ websites[website].docker_image_name }}"
@@ -46,7 +51,7 @@
 - name: Wait for services to start
   ansible.builtin.wait_for:
     port: "{{ port }}"
-    timeout: 30
+    timeout: 60
 
 - name: Print completion message
   ansible.builtin.debug:

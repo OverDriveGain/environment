@@ -205,6 +205,7 @@ local 172.31.46.166 <--------- This is private ip of the interface of the requir
 1. Connect using: `xfreerdp /v:kaxtus.com:3389 /u:manar /p:manarmama3 +clipboard +home-drive +fonts +window-drag /sound:sys:alsa /microphone:sys:alsa /compression-level:2 /network:auto /dynamic-resolution /f /log-level:WARN`
 2. ctrl + alt + enter exit fullscreen
 
+
 # Debug:
 
 1. fatal: [kaxtus]: FAILED! => {"changed": false, "gid": 101, "group": "messagebus", "mode": "0755", "msg": "chown failed: [Errno 1] Operation not permitted: b'/home/ubuntu/nginx-dist-websites'", "owner": "messagebus", "path": "/home/ubuntu/nginx-dist-websites", "size": 4096, "state": "directory", "uid": 101}
@@ -216,3 +217,18 @@ local 172.31.46.166 <--------- This is private ip of the interface of the requir
 3. nginx container config: `sudo cat /opt/nginx/conf/nginx.conf`
 
 4. nginx container errors: `docker exec -it nginx-container tail -f /var/log/nginx/error.log`
+
+#ToDo:
+add music downloader and player
+
+export ANSIBLE_VAULT_PASSWORD_FILE=./.vault_pass.txt 
+
+bitnami image:
+on new docker load -i /tmp/bitnami-node18.tar
+
+Fresh start:
+
+- Disable ssl on all sites
+- Run websites no ssl, run nginx
+- run websites onlyssl
+- enable https for the websites with successful https and rerun

@@ -16,7 +16,7 @@ websites:
         root_name: 'gaspi-website'
         port: 10081
         app_js_dir: 'formserver'
-        ssl_enabled: true
+        ssl_enabled: false
         ssl_email: "admin@gaspi.aero"
         template: 'node_app'
     calgaryexpedite:
@@ -66,6 +66,8 @@ websites:
         template: 'node_app_with_static'
     n8n:
         domains: [ 'n8n.kaxtus.com' ]
+        repo_url: 'git@github.com:OverDriveGain/ai-assistant.git'
+        root_name: 'n8n'
         port: 5678
         container_name: n8n
         ssl_enabled: true
@@ -86,10 +88,11 @@ websites:
         template: 'static_site'
     analytics:
         domains: ['analytics.kaxtus.com' ]
+        repo_url: 'git@github.com:OverDriveGain/plausible.git'
         port: 5679
-        container_name: plausible
         ssl_enabled: true
         ssl_email: "placeholder"
+        root_name: 'plausible'
         cors: true
         websocket_support: true
         template: 'proxy_app'

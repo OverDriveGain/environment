@@ -11,7 +11,7 @@ echo "$(date): Starting certificate renewal"
 
 # Copy certificates to nginx directories
 {% for site_name, site_config in websites.items() %}
-{% if site_config.ssl_enabled | default(false) %}
+{% if site_config.ssl_enabled and not (disable_ssl | default(false)) %}
 if [ -f "/etc/letsencrypt/live/{{ site_config.domains[0] }}/fullchain.pem" ]; then
     /bin/cp /etc/letsencrypt/live/{{ site_config.domains[0] }}/fullchain.pem {{ nginx_host_ssl_path }}/{{ site_name }}/cert.pem
     /bin/cp /etc/letsencrypt/live/{{ site_config.domains[0] }}/privkey.pem {{ nginx_host_ssl_path }}/{{ site_name }}/key.pem
