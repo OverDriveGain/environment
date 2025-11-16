@@ -1,5 +1,28 @@
 # Configures SSH server to act as a jump host/bastion
 # Enables TCP forwarding, agent forwarding, and connection keep-alive
+
+- name: Ensure .ssh directory exists for jump host user
+  ansible.builtin.file:
+    path: "/home/{{ jump_host_username }}/.ssh"
+    state: directory
+    mode: '0700'
+    owner: "{{ jump_host_username }}"
+    group: "{{ jump_host_username }}"
+
+- name: Deploy authorized_keys to jump host
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/data/authorized_keys"
+    dest: "/home/{{ jump_host_username }}/.ssh/authorized_keys"
+    mode: '0600'
+    owner: "{{ jump_host_username }}"
+    group: "{{ jump_host_username }}"
+  register: authorized_keys_deployed
+
+- name: Display authorized_keys deployment message
+  debug:
+    msg: "✅ Authorized keys deployed to /home/{{ jump_host_username }}/.ssh/authorized_keys"
+  when: authorized_keys_deployed.changed
+
 - name: Backup original sshd_config
   copy:
     src: /etc/ssh/sshd_config
@@ -27,9 +50,11 @@
   loop:
     - { regexp: '^#?AllowTcpForwarding', line: 'AllowTcpForwarding yes' }
     - { regexp: '^#?AllowAgentForwarding', line: 'AllowAgentForwarding yes' }
+    - { regexp: '^#?GatewayPorts', line: 'GatewayPorts yes' }
     - { regexp: '^#?ClientAliveInterval', line: 'ClientAliveInterval 60' }
     - { regexp: '^#?ClientAliveCountMax', line: 'ClientAliveCountMax 3' }
     - { regexp: '^#?MaxSessions', line: 'MaxSessions 10' }
+    - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
   register: sshd_config_changed
 
 - name: Validate sshd configuration
@@ -39,7 +64,7 @@
 
 - name: Display validation result
   debug:
-    msg: "SSH configuration is valid"
+    msg: "✅ SSH configuration is valid"
   when: sshd_validation.rc == 0
 
 - name: Ensure sshd service is enabled
@@ -49,11 +74,29 @@
 
 - name: Restart sshd service if configuration changed
   service:
-    name: sshd
+    name: "{{ 'sshd' if ansible_os_family == 'RedHat' else 'ssh' }}"
     state: restarted
-  when: sshd_config_changed.changed
+  when: sshd_config_changed.changed or authorized_keys_deployed.changed
 
 - name: Display jump host configuration message
   debug:
-    msg: "SSH server is now configured as a jump host. You can use it with: ssh -J {{ ansible_user }}@{{ ansible_host }} user@internal-server"
-  when: sshd_config_changed.changed
+    msg: |
+      ═══════════════════════════════════════════════════════════
+      ✅ SSH Jump Host Configuration Complete
+      ═══════════════════════════════════════════════════════════
+      Authorized keys: Deployed
+      Jump host user: {{ jump_host_username }}
+      Server: {{ ansible_host }}
+      
+      Usage from desktop:
+      ssh -J {{ jump_host_username }}@{{ ansible_host }} user@internal-server
+      
+      Or configure in ~/.ssh/config:
+      Host jump
+          HostName {{ ansible_host }}
+          User {{ jump_host_username }}
+      
+      Host internal-server
+          ProxyJump jump
+      ═══════════════════════════════════════════════════════════
+  when: sshd_config_changed.changed or authorized_keys_deployed.changed

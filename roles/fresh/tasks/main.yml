@@ -1,5 +1,23 @@
 # roles/cloud/tasks/system_packages.yml
----
+- name: Ensure jump host user exists
+  ansible.builtin.user:
+    name: "{{ remote_jump_host_username }}"
+    state: present
+    shell: /bin/bash
+    create_home: yes
+  when: remote_jump_host_username is defined
+  tags: ['cloud-system']
+
+- name: Add jump host user to sudo group (if needed)
+  ansible.builtin.user:
+    name: "{{ remote_jump_host_username }}"
+    groups: sudo
+    append: yes
+  when:
+    - remote_jump_host_username is defined
+    - add_jump_user_to_sudo | default(false)
+  tags: ['cloud-system']
+
 - name: Update apt cache
   ansible.builtin.apt:
     update_cache: yes
@@ -42,14 +60,14 @@
   register: oh_my_zsh_installed
   tags: ['cloud-system']
 
-
 - name: Install Oh My Zsh
   become: no
   shell: |
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
   args:
-    executable: /bin/zsh
+    executable: /bin/bash
   when: not oh_my_zsh_installed.stat.exists
+  tags: ['cloud-system']
 
 - name: Set Zsh as default shell
   ansible.builtin.user:
@@ -93,6 +111,7 @@
       plugins=(git)
       source $ZSH/oh-my-zsh.sh
       PROMPT='%B%F{yellow}Remote %F{green}$(hostname -I | awk "{print \$1}")%f %F{cyan}%~%f '
+  tags: ['cloud-system']
 
 - name: Display Zsh setup completion message
   ansible.builtin.debug:
@@ -105,13 +124,22 @@
       You may need to log out and back in for shell change to take effect.
   tags: ['cloud-system']
 
+- name: Ensure .ssh directory exists for current user
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: '0700'
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+  tags: ['cloud-system']
+
 - name: Configure SSH client for agent forwarding
   ansible.builtin.blockinfile:
-    path: "{{ host_username }}/.ssh/config"
+    path: "{{ ansible_env.HOME }}/.ssh/config"
     create: true
     mode: '0600'
-    owner: "{{ host_username }}"
-    group: "{{ host_username }}"
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
     marker: "# {mark} ANSIBLE MANAGED BLOCK - SSH AGENT FORWARDING"
     block: |
       Host *
@@ -121,3 +149,4 @@
       Host github.com
         ForwardAgent yes
         User git
+  tags: ['cloud-system']

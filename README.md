@@ -144,7 +144,8 @@ docker start nginx-container
 3. **Nginx** to map `house.kaxtus.com` to the raspberry pi: `./ansible.sh -l cloud -t nginx`
 
 #### Configure home assistant
-1. Install home assistant and confirm that its working by accessing GUI on `192.168.0.x:8123`
+to ssh into home assistant: ssh root@192.168.0.176 -p 10666 pass: manarmama3
+2. Install home assistant and confirm that its working by accessing GUI on `192.168.0.x:8123`
 2. Enable terminal access from add-on, and preferably confirm by enabling ssh access without `gui`: enable advanced mode, enable remote access, etc
 3. in file `/config/configuration.yaml` add following, the ip `172.30.33.0` might need to change but its for the docker, the ip 192.168.0.176 is used for autossh later, its the ip with which the gui can be accessed as well as the ssh of the homeassistant:
 ```yaml
@@ -170,7 +171,6 @@ remote_forwarding: leave empty
 7. Log with: `ha core logs`, and on jumpserver cat `sudo tail -f /var/log/auth.log`
 8. If it doesn't work test with raw ssh forwarding from homeassistant with command: `ssh -R 8123:192.168.0.176:8123 ubuntu@kaxtus.com`
 9. Possible fixes: `ha core logs` -> find which ip address its complaining about replace this ip address to the trusted_proxies
-10. ssh into home assistant: ssh root@192.168.0.176 -p 10666 pass: manarmama3
 
 ### openvpn:
 
@@ -232,3 +232,6 @@ Fresh start:
 - Run websites no ssl, run nginx
 - run websites onlyssl
 - enable https for the websites with successful https and rerun
+
+migrate:
+➜  ~ ./ansible.sh -l migration_hosts -t quotomate:migrate_db -v

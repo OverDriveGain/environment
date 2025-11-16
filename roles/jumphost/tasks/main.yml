@@ -1,8 +1,13 @@
+- name: Set vars
+  set_fact:
+    jump_host_name: "{{ remote_jump_host_name }}"
+    jump_host_username: "{{ remote_jump_host_username }}"
+
 - name: Include desktop tasks
   include_tasks: local.yml
   when: inventory_hostname in groups['desktop']
 
-- name: Include desktop tasks
+- name: Include cloud tasks
   include_tasks: cloud.yml
   when: inventory_hostname in groups['cloud']
 

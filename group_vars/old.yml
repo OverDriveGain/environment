@@ -1,0 +1,2 @@
+pg_user: "postgres" # The user name in postgres in the old host to migrate from
+pg_password: "amin333" # The password in postgres in the old host to migrate from

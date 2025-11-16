@@ -8,8 +8,6 @@
     ssh_key_dir: "{{ local_host_dict[user_pc_name].ssh_key_dir }}"
     ssh_pub_key_dir: "{{ local_host_dict[user_pc_name].ssh_pub_key_dir }}"
     jump_host_service_name: "{{ local_host_dict[user_pc_name].service_name }}"
-    jump_host_name: "{{ remote_jump_host_name }}"
-    jump_host_username: "{{ remote_jump_host_username }}"
     local_ssh_port: "{{ local_host_dict[user_pc_name].local_ssh_port | default(22) }}"
     actual_user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"  # <-- ADD THIS LINE
 - name: Check if host_name is defined in config
