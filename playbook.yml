@@ -5,24 +5,23 @@
   tags:
     - 'init-service'
   tasks:
-    - name: "Step 1: Configure Nginx without SSL"
-      debug:
-        msg: "Configuring Nginx to allow Let's Encrypt validation..."
-    - name: "Step 2: Deploy websites for webroot verification"
+    - name: "Step 1: Deploy websites"
       import_role:
         name: websites
       vars:
         nossl: true
-    - import_role:
+    - name: "Step 2: Deploy nginx without ssl"
+      import_role:
         name: nginx
       vars:
         nossl: true
       become: yes
-    - name: "Step 2: Deploy websites for webroot verification"
+    - name: "Step 3: Deploy websites for webroot verification"
       import_role:
         name: websites
-
-    - name: "Step 3: Reconfigure Nginx with SSL enabled"
+      vars:
+        onlyssl: true
+    - name: "Step 4: Reconfigure Nginx with SSL enabled"
       debug:
         msg: "Updating Nginx configuration with SSL certificates..."
     - import_role:

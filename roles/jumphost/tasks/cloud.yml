@@ -1,0 +1,59 @@
+# Configures SSH server to act as a jump host/bastion
+# Enables TCP forwarding, agent forwarding, and connection keep-alive
+- name: Backup original sshd_config
+  copy:
+    src: /etc/ssh/sshd_config
+    dest: /etc/ssh/sshd_config.backup
+    remote_src: yes
+    force: no
+
+- name: Check if backup was created
+  stat:
+    path: /etc/ssh/sshd_config.backup
+  register: backup_stat
+
+- name: Display backup message
+  debug:
+    msg: "Original sshd_config backed up to /etc/ssh/sshd_config.backup"
+  when: backup_stat.stat.exists
+
+- name: Configure SSH jump host settings
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    validate: '/usr/sbin/sshd -t -f %s'
+  loop:
+    - { regexp: '^#?AllowTcpForwarding', line: 'AllowTcpForwarding yes' }
+    - { regexp: '^#?AllowAgentForwarding', line: 'AllowAgentForwarding yes' }
+    - { regexp: '^#?ClientAliveInterval', line: 'ClientAliveInterval 60' }
+    - { regexp: '^#?ClientAliveCountMax', line: 'ClientAliveCountMax 3' }
+    - { regexp: '^#?MaxSessions', line: 'MaxSessions 10' }
+  register: sshd_config_changed
+
+- name: Validate sshd configuration
+  command: /usr/sbin/sshd -t
+  changed_when: false
+  register: sshd_validation
+
+- name: Display validation result
+  debug:
+    msg: "SSH configuration is valid"
+  when: sshd_validation.rc == 0
+
+- name: Ensure sshd service is enabled
+  service:
+    name: ssh
+    enabled: yes
+
+- name: Restart sshd service if configuration changed
+  service:
+    name: sshd
+    state: restarted
+  when: sshd_config_changed.changed
+
+- name: Display jump host configuration message
+  debug:
+    msg: "SSH server is now configured as a jump host. You can use it with: ssh -J {{ ansible_user }}@{{ ansible_host }} user@internal-server"
+  when: sshd_config_changed.changed
