@@ -16,7 +16,7 @@ websites:
         root_name: 'gaspi-website'
         port: 10081
         app_js_dir: 'formserver'
-        ssl_enabled: false
+        ssl_enabled: true
         ssl_email: "admin@gaspi.aero"
         template: 'node_app'
     calgaryexpedite:
@@ -40,6 +40,13 @@ websites:
         ssl_email: "admin@kaxtus.com"
         users: ['manar', 'mike']
         template: 'proxy_app'
+    musdowlow:
+        domains: ['musdowlow.kaxtus.com']
+        port: 10086
+        container_name: musdowlow
+        ssl_enabled: true
+        ssl_email: "admin@kaxtus.com"
+        template: 'proxy_app'
     house:
         domains: ['house.zaboub.com']
         port: 8123
@@ -61,8 +68,8 @@ websites:
         ssl_email: "admin@quotomate.com"
         unsafe_eval: true # Used for javascript client side rendered
         subdomain_static_dirs:
-            'windows.quotomate.com': '/home/ubuntu/quotomate/win32/update/storage/repository'
-            'linux.quotomate.com': '/home/ubuntu/quotomate/linux/update/storage/repository'
+            'windows.quotomate.com': '/home/manar/quotomate/win32/update/storage/repository'
+            'linux.quotomate.com': '/home/manar/quotomate/linux/update/storage/repository'
         template: 'node_app_with_static'
     n8n:
         domains: [ 'n8n.kaxtus.com' ]

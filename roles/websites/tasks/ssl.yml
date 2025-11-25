@@ -3,6 +3,33 @@
     certbot_auto_renew: yes
     lets_encrypt_staging: no
 
+- name: Filter websites for SSL processing
+  set_fact:
+    websites_to_process: >-
+      {{
+        websites | dict2items |
+        selectattr('value.ssl_enabled', 'defined') |
+        selectattr('value.ssl_enabled', 'equalto', true) |
+        list
+      }}
+  when: target_website is not defined
+
+- name: Filter for target website only
+  set_fact:
+    websites_to_process: >-
+      {{
+        websites | dict2items |
+        selectattr('key', 'equalto', target_website) |
+        selectattr('value.ssl_enabled', 'defined') |
+        selectattr('value.ssl_enabled', 'equalto', true) |
+        list
+      }}
+  when: target_website is defined
+
+- name: Display websites to process
+  debug:
+    msg: "Processing SSL for: {{ websites_to_process | map(attribute='key') | list }}"
+
 - name: Install required packages
   apt:
     name:
@@ -11,7 +38,7 @@
     state: present
     update_cache: yes
   become: yes
-
+  when: websites_to_process | length > 0
 
 - name: Create webroot directory for Let's Encrypt challenges
   file:
@@ -19,6 +46,7 @@
     state: directory
     mode: '0755'
   become: no
+  when: websites_to_process | length > 0
 
 - name: Generate certificates for each website using webroot
   command: >
@@ -37,14 +65,15 @@
     --staging
     {% endif %}
   become: yes
-  loop: "{{ websites | dict2items }}"
+  loop: "{{ websites_to_process }}"
   register: cert_generation
-  when: item.value.ssl_enabled | default(false)
   failed_when: false
+  when: websites_to_process | length > 0
 
 - name: Display certificate generation output
   debug:
     var: cert_generation
+  when: websites_to_process | length > 0
 
 - name: Make certificates readable
   file:
@@ -52,16 +81,16 @@
     mode: "0755"
     recurse: yes
   become: yes
-
+  when: websites_to_process | length > 0
 
 - name: Create SSL directories for each website in mounted directory
   file:
     path: "{{ nginx_host_ssl_path }}/{{ item.key }}"
     state: directory
     mode: '0755'
-  loop: "{{ websites | dict2items }}"
-  when: item.value.ssl_enabled | default(false)
+  loop: "{{ websites_to_process }}"
   become: yes
+  when: websites_to_process | length > 0
 
 - name: Copy fullchain.pem certificates to nginx directory
   copy:
@@ -70,10 +99,10 @@
     remote_src: yes
     mode: "0644"
     follow: yes
-  loop: "{{ websites | dict2items }}"
+  loop: "{{ websites_to_process }}"
   become: yes
-  when: item.value.ssl_enabled | default(false)
   ignore_errors: yes
+  when: websites_to_process | length > 0
 
 - name: Copy privkey.pem certificates to nginx directory
   copy:
@@ -82,10 +111,10 @@
     remote_src: yes
     mode: "0644"
     follow: yes
-  loop: "{{ websites | dict2items }}"
-  when: item.value.ssl_enabled | default(false)
+  loop: "{{ websites_to_process }}"
   become: yes
   ignore_errors: yes
+  when: websites_to_process | length > 0
 
 - name: Create certificate renewal script
   template:
@@ -93,6 +122,9 @@
     dest: /usr/local/bin/certbot-renewal.sh
     mode: '0755'
   become: yes
+  when:
+    - websites_to_process | length > 0
+    - target_website is not defined  # Only create renewal script for full runs
 
 - name: Set up automatic renewal with webroot
   cron:
@@ -101,7 +133,9 @@
     hour: "0"
     day: "12"
     job: "/usr/local/bin/certbot-renewal.sh >> /var/log/certbot-renewal.log 2>&1"
-  when: certbot_auto_renew
+  when:
+    - certbot_auto_renew
+    - target_website is not defined  # Only set up cron for full runs
 
 - name: Verify certificates
   command: >
@@ -109,7 +143,23 @@
   become: yes
   register: cert_status
   changed_when: false
+  when: websites_to_process | length > 0
 
 - name: Display certificate status
   debug:
     var: cert_status.stdout_lines
+  when: websites_to_process | length > 0
+
+- name: Display completion message for target website
+  debug:
+    msg: "SSL certificate processed for {{ target_website }}"
+  when:
+    - target_website is defined
+    - websites_to_process | length > 0
+
+- name: Display skip message if target website has no SSL
+  debug:
+    msg: "Target website {{ target_website }} does not have SSL enabled or does not exist"
+  when:
+    - target_website is defined
+    - websites_to_process | length == 0

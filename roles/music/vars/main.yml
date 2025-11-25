@@ -1,0 +1,3 @@
+download_folder_name: "YoutubeDownloads"
+temp_dir: "/tmp/musdowlow-downloads"
+max_file_size: "100mb"

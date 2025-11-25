@@ -1,0 +1,48 @@
+- name: Set the facts
+  set_fact:
+    download_folder: "{{ music_path }}/{{ download_folder_name }}"
+    container_name: "{{ websites.musdowlow.container_name }}"
+    port: "{{ websites.musdowlow.port }}"
+
+- name: Pull Docker image
+  docker_image:
+    name: "manarmanar/musdowlow"
+    tag: "latest"
+    source: pull
+    force_source: yes
+    state: present
+
+- name: Create download directory
+  file:
+    path: "{{ download_folder }}"
+    state: directory
+    mode: '0755'
+
+- name: Stop existing container
+  docker_container:
+    name: "{{ container_name }}"
+    state: absent
+  ignore_errors: yes
+
+- name: Run Docker container
+  docker_container:
+    name: "{{ container_name }}"
+    image: "manarmanar/musdowlow:latest"
+    state: started
+    recreate: yes
+    restart_policy: unless-stopped
+    ports:
+      - "{{ port }}:3000"
+    volumes:
+      - "{{ download_folder }}:/app/downloads"
+    env:
+      PORT: "3000"
+      OUTPUT_DIR: "/app/downloads"
+      TEMP_DIR: "{{ temp_dir }}"
+      MAX_FILE_SIZE: "{{ max_file_size }}"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

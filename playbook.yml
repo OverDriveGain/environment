@@ -58,6 +58,14 @@
       become: yes
       tags:
         - 'openvpn'
+- name: Berlin (Microservice)
+  become: yes
+  hosts: berlin
+  roles:
+    - role: music
+      tags:
+        - 'music'
+
 - name: Desktop (Berlin) Playbook
   become: yes
   hosts: desktop
@@ -72,17 +80,9 @@
     - role: ssh-client
       tags:
         - 'ssh-client'
-    - role: musdowlow
-      tags:
-        - 'musdowlow'
 - name: Cloud and Desktop Setup
-  hosts: cloud,desktop
+  hosts: cloud,desktop,berlin
   become: yes
-  handlers:
-    - name: restart haproxy
-      service:
-        name: haproxy
-        state: restarted
   roles:
     - role: jumphost
       tags:
