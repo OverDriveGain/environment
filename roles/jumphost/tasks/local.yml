@@ -15,10 +15,7 @@
     msg: "user_pc_name {{ user_pc_name }} is not defined in local_host_dict"
   when: local_host_dict[user_pc_name] is not defined
 
-- name: Check if port is curl -X POST \
-     -H "Content-Type: application/json" \
-     -d '{"videoUrl": "https://www.youtube.com/watch?v=tAGnKpE4NCI"}' \
-     http://localhost:10086/api/downloaddefined for user_pc_name
+- name: Check if port is defined for user_pc_name
   fail:
     msg: "No port defined for user_pc_name: {{ user_pc_name }}"
   when: local_host_dict[user_pc_name].port is not defined
