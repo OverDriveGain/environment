@@ -1,5 +1,5 @@
-- import_tasks: install_leaflet.yml
-  tags: ["music:player"]
+- import_tasks: install_musplaya.yml
+  tags: ["music:musplaya"]
 
 - import_tasks: install_musdowlow.yml
-  tags: ["music:download"]
+  tags: ["music:musdowlow"]

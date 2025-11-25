@@ -1,0 +1,78 @@
+# ============================
+# Navidrome Deployment (Berlin)
+# ============================
+
+- name: Set variables
+  set_fact:
+    navidrome_music_path: "{{ music_path }}"
+    navidrome_data_path: "/opt/musplaya"
+    navidrome_port: "{{ websites.music.port }}"
+    navidrome_container: "{{ websites.music.container_name }}"
+  delegate_to: berlin
+
+# Ensure docker is installed
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+  become: yes
+  delegate_to: berlin
+
+# Ensure folder exists with correct permissions
+- name: Ensure data directory exists
+  file:
+    path: "{{ navidrome_data_path }}"
+    state: directory
+    owner: "{{ ansible_user_uid }}"
+    group: "{{ ansible_user_gid }}"
+    mode: '0755'
+  delegate_to: berlin
+  become: yes
+
+# Optionally create a docker volume (like leafplayer)
+- name: Create Navidrome volume
+  docker_volume:
+    name: navidrome-storage
+    state: present
+  delegate_to: berlin
+
+# Stop old container if exists
+- name: Stop existing Navidrome container
+  community.docker.docker_container:
+    name: "{{ navidrome_container }}"
+    state: stopped
+  ignore_errors: true
+  delegate_to: berlin
+
+# Remove old container
+- name: Remove existing Navidrome container
+  community.docker.docker_container:
+    name: "{{ navidrome_container }}"
+    state: absent
+  ignore_errors: true
+  delegate_to: berlin
+
+# Run Navidrome (equivalent to docker run -d ...)
+- name: Run Navidrome container
+  community.docker.docker_container:
+    name: "{{ navidrome_container }}"
+    image: deluan/navidrome:latest
+    state: started
+    restart_policy: unless-stopped
+    user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
+    env:
+      ND_LOGLEVEL: "info"
+    volumes:
+      - "{{ navidrome_music_path }}:/music:ro"
+      - "{{ navidrome_data_path }}:/data"
+    published_ports:
+      - "{{ navidrome_port }}:4533"
+  delegate_to: berlin
+
+# Wait for container to be online
+- name: Wait for Navidrome to be ready
+  wait_for:
+    port: "{{ navidrome_port }}"
+    delay: 5
+  delegate_to: berlin

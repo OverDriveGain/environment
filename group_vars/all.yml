@@ -33,12 +33,9 @@ websites:
         domains: ['music.kaxtus.com']
         port: 10082
         app_secret: supersecret
-        container_name: leafplayer
-        admin_username: admin
-        admin_password: supersecret
+        container_name: musplaya
         ssl_enabled: true
         ssl_email: "admin@kaxtus.com"
-        users: ['manar', 'mike']
         template: 'proxy_app'
     musdowlow:
         domains: ['musdowlow.kaxtus.com']
