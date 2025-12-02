@@ -1,0 +1,4 @@
+- name: Print warning
+  debug:
+    msg: "This will do nothing, it will only adjust the nginx on the host. Make sure casabot is running on the host"
+  delegate_to: cloud

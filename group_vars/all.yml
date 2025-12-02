@@ -1,5 +1,11 @@
 # roles/websites/vars/main.yml
 websites:
+    ollama:
+        domains: ['ollama.kaxtus.com']
+        port: 11434
+        ssl_enabled: true
+        ssl_email: "info@kaxtus.com"
+        template: 'proxy_app'
     kaxtus:
         domains: ['kaxtus.com', 'www.kaxtus.com']
         repo_url: 'git@github.com:kaxtus/homePage.git'
