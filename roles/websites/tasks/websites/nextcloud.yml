@@ -2,3 +2,8 @@
   debug:
     msg: "This will do nothing, it will only adjust the nginx on the host. Make sure next cloud is running on the files host, and a jump host ssh is also running as well"
   delegate_to: cloud
+
+- name: Print another warning
+  debug:
+    msg: "Run on a host (e.g., Berlin Desktop) with https://github.com/OverDriveGain/nextcloud"
+  delegate_to: cloud
