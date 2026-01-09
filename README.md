@@ -84,8 +84,8 @@ Install postgresql, configures it, and can migrate db from old host to new host:
 
 1. Setup DB: `./ansible.sh -l cloud -t quotomate:setup_db`
 2. Configure DB: `./ansible.sh -l cloud -t quotomate:configure_db`
-3. Migrate DB: `./ansible.sh -l cloud -t quotomate:migrate_db`
-4. Start PN search engine API: `./ansible.sh -l cloud -t quotomate:pn_search_engine_api`
+3. Migrate DB: `./ansible.sh -l migration_hosts -t quotomate:migrate_db -v`
+
 
 ### websites
 
@@ -218,20 +218,14 @@ local 172.31.46.166 <--------- This is private ip of the interface of the requir
 
 4. nginx container errors: `docker exec -it nginx-container tail -f /var/log/nginx/error.log`
 
-#ToDo:
-add music downloader and player
+4. `fatal: [cloud]: FAILED! => {"msg": "A vault password or secret must be specified to decrypt /home/manar/Projects/environment/./github_id_rsa.vault"}` Solve with export ANSIBLE_VAULT_PASSWORD_FILE=./.vault_pass.txt 
 
-export ANSIBLE_VAULT_PASSWORD_FILE=./.vault_pass.txt 
 
-bitnami image:
-on new docker load -i /tmp/bitnami-node18.tar
-
-Fresh start:
-
+## Fresh start:
 - Disable ssl on all sites
 - Run websites no ssl, run nginx
 - run websites onlyssl
 - enable https for the websites with successful https and rerun
 
-migrate:
-➜  ~ ./ansible.sh -l migration_hosts -t quotomate:migrate_db -v
+bitnami image:
+on new docker load -i /tmp/bitnami-node18.tar
