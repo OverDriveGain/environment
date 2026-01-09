@@ -171,7 +171,7 @@ remote_forwarding: leave empty
 7. Log with: `ha core logs`, and on jumpserver cat `sudo tail -f /var/log/auth.log`
 8. If it doesn't work test with raw ssh forwarding from homeassistant with command: `ssh -R 8123:192.168.0.176:8123 ubuntu@kaxtus.com`
 9. Possible fixes: `ha core logs` -> find which ip address its complaining about replace this ip address to the trusted_proxies
-
+10. See the log in the webview -> addons -> ssh forwarding -> log. it might ask for adding ssh key 
 ### openvpn:
 
 Is not stable, use the script open-vpn-install.sh. If two public ip addresses are there, set in file `/etc/openvpn/server.conf`:

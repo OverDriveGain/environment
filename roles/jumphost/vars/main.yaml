@@ -60,5 +60,14 @@ local_host_dict : {
     "service_name": "ssh_jump_kaxtus_ollama",
     "comments": "Ollama jumphost to run on berlin desktop"
   },
+  "berlin_nextcloud": {
+    "username": "manar",
+    "port": "10087", # ToDo this should be identical to websites/var/casabot
+    "local_ssh_port": "10087", # this is where the casabot service is started on host
+    "ssh_key_dir": "/home/manar/.ssh/id_rsa",
+    "ssh_pub_key_dir": "/home/manar/.ssh/id_rsa.pub",
+    "service_name": "ssh_jump_kaxtus_nextcloud",
+    "comments": "Nextcloud jumphost to run on berlin desktop"
+  },
 
 }

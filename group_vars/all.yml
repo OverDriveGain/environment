@@ -35,6 +35,15 @@ websites:
         ssl_enabled: true
         ssl_email: "admin@calgaryexpedite.com"
         template: 'node_app'
+    zohreh:
+        domains: ['honarmand.de', 'www.honarmand.de']
+        repo_url: 'git@github.com:OverDriveGain/zohreh.git'
+        docker_image_name: 'zohreh-website'
+        root_name: 'zohreh-website'
+        bin_dir: 'dist'
+        ssl_enabled: true
+        ssl_email: "admin@honarmand.de"
+        template: 'static_site'
     music:
         domains: ['music.kaxtus.com']
         port: 10082
@@ -47,6 +56,13 @@ websites:
         domains: ['musdowlow.kaxtus.com']
         port: 10086
         container_name: musdowlow
+        ssl_enabled: true
+        ssl_email: "admin@kaxtus.com"
+        template: 'proxy_app'
+    nextcloud:
+        domains: [ 'nextcloud.kaxtus.com' ]
+        port: 10087
+        container_name: nextcloud
         ssl_enabled: true
         ssl_email: "admin@kaxtus.com"
         template: 'proxy_app'

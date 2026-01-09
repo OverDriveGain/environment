@@ -1,0 +1,4 @@
+- name: Print warning
+  debug:
+    msg: "This will do nothing, it will only adjust the nginx on the host. Make sure next cloud is running on the files host, and a jump host ssh is also running as well"
+  delegate_to: cloud
