@@ -1,0 +1,6 @@
+- name: Print warning
+  debug:
+    msg: "This will do nothing, it will only adjust the nginx on the host. Make sure music downloader is running on the host"
+  delegate_to: cloud
+
+# make sure to run musdowlow refer the README.md in this

@@ -2,3 +2,14 @@
   debug:
     msg: "This will do nothing, it will only adjust the nginx on the host. Make sure music is running on the host"
   delegate_to: cloud
+
+#To run currently use this on desktop berlin:
+# docker run -d \
+#   --name musplaya \
+#   --restart=unless-stopped \
+#   --user $(id -u):$(id -g) \
+#   -v /mnt/tb/Music:/music \
+#   -v /opt/musplaya:/data \
+#   -p 10082:4533 \
+#   -e ND_LOGLEVEL=info \
+#   deluan/navidrome:latest
