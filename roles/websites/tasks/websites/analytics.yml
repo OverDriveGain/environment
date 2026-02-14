@@ -23,6 +23,18 @@
     update: yes
     force: yes
 
+- name: Update docker-compose.yml to use custom port
+  ansible.builtin.replace:
+    path: "{{ root_dir }}/{{ compose_file }}"
+    regexp: '"3000:3000"'
+    replace: '"{{ port }}:3000"'
+  register: port_change
+
+- name: Log port change
+  ansible.builtin.debug:
+    msg: "Changed umami port mapping from 3000:3000 to {{ port }}:3000"
+  when: port_change.changed
+
 - name: Stop existing Docker containers (if any)
   community.docker.docker_compose:
     project_src: "{{ root_dir }}"

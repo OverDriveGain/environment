@@ -114,11 +114,11 @@ websites:
         template: 'static_site'
     analytics:
         domains: ['analytics.kaxtus.com' ]
-        repo_url: 'git@github.com:OverDriveGain/plausible.git'
+        repo_url: 'git@github.com:umami-software/umami.git'
         port: 5679
         ssl_enabled: true
         ssl_email: "placeholder"
-        root_name: 'plausible'
+        root_name: 'umami'
         cors: true
         websocket_support: true
         template: 'proxy_app'
