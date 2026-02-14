@@ -1,0 +1,16 @@
+- name: Deploy infrastructure services
+  debug:
+    msg: "Deploying infrastructure services..."
+
+- name: Deploy Redis
+  include_tasks: redis.yml
+  when: infrastructure.redis is defined
+
+# To comply this needs to be done
+#   │ 1. Message Queue (Redis)                  │ ✓ Done                   │
+#  ├───────────────────────────────────────────┼──────────────────────────┤
+#  │ 2. Centralized Logging                    │ Next                     │
+#  ├───────────────────────────────────────────┼──────────────────────────┤
+#  │ 3. Container Orchestration (Docker Swarm) │ Later                    │
+#  ├───────────────────────────────────────────┼──────────────────────────┤
+#  │ 4. Service Discovery                      │ Comes with orchestration │

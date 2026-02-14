@@ -1,0 +1,39 @@
+- name: Set Redis variables
+  set_fact:
+    redis_port: "{{ infrastructure.redis.port | default(6379) }}"
+    redis_password: "{{ infrastructure.redis.password }}"
+    redis_container_name: "{{ infrastructure.redis.container_name | default('redis') }}"
+
+- name: Stop existing Redis container (if any)
+  community.docker.docker_container:
+    name: "{{ redis_container_name }}"
+    state: absent
+  ignore_errors: true
+
+- name: Start Redis container
+  community.docker.docker_container:
+    name: "{{ redis_container_name }}"
+    image: redis:alpine
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "{{ redis_port }}:6379"
+    command: redis-server --requirepass {{ redis_password }}
+
+- name: Wait for Redis to start
+  ansible.builtin.wait_for:
+    port: "{{ redis_port }}"
+    timeout: 30
+
+- name: Log Redis deployment
+  debug:
+    msg: |
+      Redis deployed successfully:
+        - Container: {{ redis_container_name }}
+        - Port: {{ redis_port }}
+        - Password protected: yes
+
+      Connection string for services:
+        REDIS_HOST={{ ansible_host }}
+        REDIS_PORT={{ redis_port }}
+        REDIS_PASSWORD=<configured>

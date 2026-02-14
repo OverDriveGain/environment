@@ -36,6 +36,9 @@
       become: yes
       tags:
         - 'docker'
+    - role: infrastructure
+      tags:
+        - 'infrastructure'
     - role: bridge
       tags:
         - 'bridge'
