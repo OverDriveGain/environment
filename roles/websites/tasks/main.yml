@@ -7,3 +7,7 @@
   import_tasks: ssl.yml
   tags: ["websites:ssl"]
   when: nossl is not defined
+
+- name: Check SSL certificate expiry
+  import_tasks: check_ssl.yml
+  tags: ["websites:check_ssl"]

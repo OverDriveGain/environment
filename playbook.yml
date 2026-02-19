@@ -6,26 +6,29 @@
     - 'init-service'
   tasks:
     - name: "Step 1: Deploy websites"
-      import_role:
+      include_role:
         name: websites
       vars:
         nossl: true
     - name: "Step 2: Deploy nginx without ssl"
-      import_role:
-        name: nginx
-      vars:
-        nossl: true
+      block:
+        - include_role:
+            name: nginx
+          vars:
+            nossl: true
       become: yes
     - name: "Step 3: Deploy websites for webroot verification"
-      import_role:
+      include_role:
         name: websites
       vars:
         onlyssl: true
     - name: "Step 4: Reconfigure Nginx with SSL enabled"
       debug:
         msg: "Updating Nginx configuration with SSL certificates..."
-    - import_role:
-        name: nginx
+    - name: "Step 5: Deploy nginx with SSL"
+      block:
+        - include_role:
+            name: nginx
       become: yes
 
 - name: Cloud Server Playbook

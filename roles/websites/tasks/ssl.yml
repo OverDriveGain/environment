@@ -116,6 +116,14 @@
   ignore_errors: yes
   when: websites_to_process | length > 0
 
+- name: Reload nginx to pick up new certificates
+  community.docker.docker_container_exec:
+    container: "{{ nginx_container_name }}"
+    command: nginx -s reload
+  become: yes
+  ignore_errors: yes
+  when: websites_to_process | length > 0
+
 - name: Create certificate renewal script
   template:
     src: templates/certbot-renewal.sh.j2
