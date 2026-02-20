@@ -1,0 +1,13 @@
+health_checks:
+  - name: "Grafana"
+    category: "infrastructure"
+    type: http
+    check: "http://grafana:3000/api/health"
+  - name: "Loki"
+    category: "infrastructure"
+    type: http
+    check: "http://loki:3100/loki/api/v1/labels"
+  - name: "Promtail"
+    category: "infrastructure"
+    type: http
+    check: "http://promtail:9080/ready"

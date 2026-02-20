@@ -1,0 +1,37 @@
+health_checks:
+  - name: "kaxtus.com"
+    category: "services"
+    type: http
+    check: "https://kaxtus.com"
+  - name: "gaspi.aero"
+    category: "services"
+    type: http
+    check: "https://gaspi.aero"
+  - name: "quotomate.com"
+    category: "services"
+    type: http
+    check: "https://quotomate.com"
+  - name: "calgaryexpedite.com"
+    category: "services"
+    type: http
+    check: "https://calgaryexpedite.com"
+  - name: "n8n.kaxtus.com"
+    category: "services"
+    type: http
+    check: "https://n8n.kaxtus.com"
+  - name: "analytics.kaxtus.com"
+    category: "services"
+    type: http
+    check: "https://analytics.kaxtus.com"
+  - name: "music.kaxtus.com"
+    category: "services"
+    type: http
+    check: "https://music.kaxtus.com"
+  - name: "honarmand.de"
+    category: "services"
+    type: http
+    check: "https://honarmand.de"
+  - name: "reiddt.com"
+    category: "services"
+    type: http
+    check: "https://reiddt.com"

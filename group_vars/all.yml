@@ -4,6 +4,10 @@ infrastructure:
         port: 6379
         password: "{{ vault_redis_password }}"
         container_name: redis
+    monitoring:
+        grafana_port: 3001
+        loki_port: 3100
+        grafana_password: "{{ vault_grafana_password }}"
 
 # roles/websites/vars/main.yml
 websites:
@@ -135,4 +139,10 @@ websites:
         port: 10085
         ssl_enabled: true
         ssl_email: "info@quotomate.com"
+        template: 'proxy_app'
+    grafana:
+        domains: ['grafana.kaxtus.com']
+        port: 3001
+        ssl_enabled: true
+        ssl_email: "admin@kaxtus.com"
         template: 'proxy_app'

@@ -5,18 +5,48 @@ This project is dedicated to automating, and keep tracking of applied changes to
 1. Any desktop belongs to manar
 2. The main cloud running on erc-20.
 
-## Available Desktop Tasks:
+## Project Structure
 
-### Jumphost:
+```
+roles/
+├── base/                ← things every host needs
+│   ├── docker/          ← Docker installation
+│   ├── fresh/           ← Ubuntu setup, zsh
+│   └── commands/        ← Shell aliases
+├── infrastructure/      ← shared platform services
+│   ├── tasks/           ← Redis, monitoring (Loki+Grafana)
+│   ├── nginx/           ← Reverse proxy
+│   └── bridge/          ← Docker bridge
+├── networking/          ← connectivity
+│   ├── jumphost/        ← SSH tunnels
+│   ├── ssh-client/      ← SSH config
+│   └── openvpn/         ← VPN
+├── services/            ← applications
+│   ├── websites/        ← All websites
+│   ├── music/           ← Music server (berlin)
+│   ├── musdowlow/       ← YouTube downloader
+│   └── quotomate/       ← PostgreSQL for quotomate
+└── host-specific/       ← one-off machine config
+    └── 1tbmount/        ← Disk mount (berlin desktop)
+```
 
-Any host is reachable from anywhere using domain name **kaxtus.com**.
+---
 
-Available configurations are in `jumphost/vars/`.
+## Base
 
-1. **Run using your desired key in the configuration:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin"```
-2. **Run for music server port forwarding:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin_music"```
+### docker:
 
-### Commands:
+Install docker on host
+
+**Run using**: `./ansible.sh -l cloud -t docker`
+
+### fresh:
+
+For freshly installed ubuntu, installs zsh also.
+
+**Run using**: `./ansible.sh -l cloud -t fresh`
+
+### commands:
 
 Adds commands aliases to `~/.zshrc` or `~/.bashrc`.
 
@@ -26,37 +56,41 @@ Available commands:
 
 **Run using**: ./ansible.sh -l desktop -t commands
 
-### 1tbmount:
+---
 
-For the desktop in Berlin this mounts the 1tb free to `/mnt/1tb`.
+## Infrastructure
 
-**Run using**: ./ansible.sh -l desktop -t 1tbmount
+### infrastructure (Redis + Monitoring):
 
-### ssh-client:
+Deploys infrastructure services (Redis, monitoring, etc.) that microservices depend on.
 
-Adds entry to `~/.ssh/config` to connect to main cloud host defined in `inventory.ini`
+**Run using**: `./ansible.sh -l cloud -t infrastructure`
 
-**Run using**: `./ansible.sh -l desktop -t ssh-client`
+Services deployed:
+- **Redis**: Message queue on port 6379
+- **Loki**: Log aggregation on port 3100
+- **Promtail**: Collects logs from all Docker containers
+- **Grafana**: Monitoring UI at grafana.kaxtus.com
 
-### musdowlow:
+Redis connection for services:
+```
+REDIS_HOST=<cloud-ip>
+REDIS_PORT=6379
+REDIS_PASSWORD=<vault_redis_password>
+```
 
-Runs a Docker container for YouTube music downloads. Downloads are saved to the music directory.
+Grafana access:
+```
+URL: https://grafana.kaxtus.com
+User: admin
+Password: <vault_grafana_password>
+```
 
-**Run using**: ./ansible.sh -l desktop -t musdowlow
-
-## Cloud:
-
-### docker:
-
-Install docker on host
-
-**Run using**: `./ansible.sh -l cloud -t docker`
-
-### bridge:
-
-Creates a docker bridge named in `inventory.ini`
-
-**Run using**: `./ansible.sh -l cloud -t bridge` #ToDo see if removed
+After deploying infrastructure, run nginx to enable grafana.kaxtus.com:
+```bash
+./ansible.sh -l cloud -t infrastructure -e "vault_redis_password=xxx vault_grafana_password=xxx"
+./ansible.sh -l cloud -t nginx -e "target_website=grafana"
+```
 
 ### nginx:
 
@@ -72,24 +106,45 @@ Creates an nginx with modular configuration templates for different website type
 - `node_app_with_static` - For Node.js apps with static subdomains (like quotomate)
 - `proxy_app` - For generic proxy applications with WebSocket support (like n8n, house)
 
-### fresh:
+### bridge:
 
-For freshly installed ubuntu, installs zsh also.
+Creates a docker bridge named in `inventory.ini`
 
-**Run using**: `./ansible.sh -l cloud -t fresh`
+**Run using**: `./ansible.sh -l cloud -t bridge` #ToDo see if removed
 
-### quotomate
+---
 
-Install postgresql, configures it, and can migrate db from old host to new host:
+## Networking
 
-1. Setup DB: `./ansible.sh -l cloud -t quotomate:setup_db`
-2. Configure DB: `./ansible.sh -l cloud -t quotomate:configure_db`
-3. Migrate DB: `./ansible.sh -l migration_hosts -t quotomate:migrate_db -v`
+### jumphost:
 
+Any host is reachable from anywhere using domain name **kaxtus.com**.
+
+Available configurations are in `networking/jumphost/vars/`.
+
+1. **Run using your desired key in the configuration:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin"```
+2. **Run for music server port forwarding:**``` ./ansible.sh -l desktop -t jumphost -e "user_pc_name=berlin_music"```
+
+### ssh-client:
+
+Adds entry to `~/.ssh/config` to connect to main cloud host defined in `inventory.ini`
+
+**Run using**: `./ansible.sh -l desktop -t ssh-client`
+
+### openvpn:
+
+Is not stable, use the script open-vpn-install.sh. If two public ip addresses are there, set in file `/etc/openvpn/server.conf`:
+```
+local 172.31.46.166 <--------- This is private ip of the interface of the required public ip
+```
+
+---
+
+## Services
 
 ### websites
 
-Install websites available in `/roles/websites/vars/main.yml`. Automatically installs SSL certificates. NGINX uses this for SSL serving.
+Install websites available in `group_vars/all.yml`. Automatically installs SSL certificates. NGINX uses this for SSL serving.
 
 **Supported Website Types:**
 - **Static sites**: kaxtus.com, reiddt.com, rieddt.com
@@ -103,8 +158,8 @@ Install websites available in `/roles/websites/vars/main.yml`. Automatically ins
 4. **SSL only**: `./ansible.sh -l cloud -t websites -e "onlyssl=true"`
 
 **Adding new website:**
-1. Copy existing task from `/roles/websites/tasks/websites/`
-2. Add configuration to `/roles/websites/vars/main.yml`
+1. Copy existing task from `roles/services/websites/tasks/websites/`
+2. Add configuration to `group_vars/all.yml`
 3. Choose appropriate template type in config
 4. Run: `./ansible.sh -l cloud -t websites -e "target_website=newsite"`
 5. Update nginx: `./ansible.sh -l cloud -t nginx -e "target_website=newsite"`
@@ -115,7 +170,7 @@ Install websites available in `/roles/websites/vars/main.yml`. Automatically ins
 
 ### websites ssl only
 
-Only installs SSL certificates for websites available in `/roles/websites/vars/main.yml`
+Only installs SSL certificates for websites available in `group_vars/all.yml`
 
 ```bash
 ./ansible.sh -l cloud -t websites:ssl
@@ -127,14 +182,28 @@ And is copied from the letsencrypt default directory
 Debug. Sometimes the certificates don't renew to do this manually:
 ```bash
 docker stop nginx-container
-sudo certbot certonly --standalone \             
-  --email admin@calgaryexpedite.com \ 
+sudo certbot certonly --standalone \
+  --email admin@calgaryexpedite.com \
   -d calgaryexpedite.com -d www.calgaryexpedite.com \
   --agree-tos \
   --non-interactive \
   --debug
 docker start nginx-container
 ```
+
+### musdowlow:
+
+Runs a Docker container for YouTube music downloads. Downloads are saved to the music directory.
+
+**Run using**: ./ansible.sh -l desktop -t musdowlow
+
+### quotomate
+
+Install postgresql, configures it, and can migrate db from old host to new host:
+
+1. Setup DB: `./ansible.sh -l cloud -t quotomate:setup_db`
+2. Configure DB: `./ansible.sh -l cloud -t quotomate:configure_db`
+3. Migrate DB: `./ansible.sh -l migration_hosts -t quotomate:migrate_db -v`
 
 ### House
 
@@ -145,8 +214,10 @@ docker start nginx-container
 
 #### Configure home assistant
 to ssh into home assistant: ssh root@192.168.0.176 -p 10666 pass: manarmama3
+1. Install home assistance on raspberry pi with `https://www.home-assistant.io/installation/raspberrypi/#downloading-the-home-assistant-image`
 2. Install home assistant and confirm that its working by accessing GUI on `192.168.0.x:8123`
-2. Enable terminal access from add-on, and preferably confirm by enabling ssh access without `gui`: enable advanced mode, enable remote access, etc
+2. Configure static ip: settings -> system -> network: 192.168.0.176
+3. Enable terminal access from add-on, and preferably confirm by enabling ssh access without `gui`: enable advanced mode, enable remote access, etc
 3. in file `/config/configuration.yaml` add following, the ip `172.30.33.0` might need to change but its for the docker, the ip 192.168.0.176 is used for autossh later, its the ip with which the gui can be accessed as well as the ssh of the homeassistant:
 ```yaml
 http:
@@ -171,15 +242,21 @@ remote_forwarding: leave empty
 7. Log with: `ha core logs`, and on jumpserver cat `sudo tail -f /var/log/auth.log`
 8. If it doesn't work test with raw ssh forwarding from homeassistant with command: `ssh -R 8123:192.168.0.176:8123 ubuntu@kaxtus.com`
 9. Possible fixes: `ha core logs` -> find which ip address its complaining about replace this ip address to the trusted_proxies
-10. See the log in the webview -> addons -> ssh forwarding -> log. it might ask for adding ssh key 
-### openvpn:
+10. See the log in the webview -> addons -> ssh forwarding -> log. it might ask for adding ssh key
 
-Is not stable, use the script open-vpn-install.sh. If two public ip addresses are there, set in file `/etc/openvpn/server.conf`:
-```
-local 172.31.46.166 <--------- This is private ip of the interface of the required public ip
-```
+---
 
-## Infrastructure:
+## Host-Specific
+
+### 1tbmount:
+
+For the desktop in Berlin this mounts the 1tb free to `/mnt/1tb`.
+
+**Run using**: ./ansible.sh -l desktop -t 1tbmount
+
+---
+
+## Infrastructure Info:
 
 1. Kaxtus.com, kaxtus.de, quotomate, zaboub, reiddt, gulfrotables: godaddy: godaddy username 224581117
 2. Others: username 64879667
@@ -218,7 +295,7 @@ local 172.31.46.166 <--------- This is private ip of the interface of the requir
 
 4. nginx container errors: `docker exec -it nginx-container tail -f /var/log/nginx/error.log`
 
-4. `fatal: [cloud]: FAILED! => {"msg": "A vault password or secret must be specified to decrypt /home/manar/Projects/environment/./github_id_rsa.vault"}` Solve with export ANSIBLE_VAULT_PASSWORD_FILE=./.vault_pass.txt 
+4. `fatal: [cloud]: FAILED! => {"msg": "A vault password or secret must be specified to decrypt /home/manar/Projects/environment/./github_id_rsa.vault"}` Solve with export ANSIBLE_VAULT_PASSWORD_FILE=./.vault_pass.txt
 
 
 ## Fresh start:

@@ -3,3 +3,6 @@
 
 - import_tasks: install_musdowlow.yml
   tags: ["music:musdowlow"]
+
+- import_tasks: install_promtail.yml
+  tags: ["music:promtail"]

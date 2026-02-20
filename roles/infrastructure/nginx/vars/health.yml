@@ -1,0 +1,5 @@
+health_checks:
+  - name: "Nginx"
+    category: "infrastructure"
+    type: http
+    check: "http://host.docker.internal:80"

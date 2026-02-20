@@ -1,0 +1,6 @@
+health_checks:
+  - name: "Redis"
+    category: "infrastructure"
+    type: port
+    host: host.docker.internal
+    check: 6379

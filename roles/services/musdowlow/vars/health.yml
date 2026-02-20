@@ -1,0 +1,9 @@
+health_checks:
+  - name: "Musdowlow API"
+    category: "services"
+    type: http
+    check: "http://host.docker.internal:10086/api/health"
+  - name: "Musdowlow Container"
+    category: "services"
+    type: container
+    check: "musdowlow"

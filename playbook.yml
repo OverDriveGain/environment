@@ -7,19 +7,19 @@
   tasks:
     - name: "Step 1: Deploy websites"
       include_role:
-        name: websites
+        name: services/websites
       vars:
         nossl: true
     - name: "Step 2: Deploy nginx without ssl"
       block:
         - include_role:
-            name: nginx
+            name: infrastructure/nginx
           vars:
             nossl: true
       become: yes
     - name: "Step 3: Deploy websites for webroot verification"
       include_role:
-        name: websites
+        name: services/websites
       vars:
         onlyssl: true
     - name: "Step 4: Reconfigure Nginx with SSL enabled"
@@ -28,39 +28,40 @@
     - name: "Step 5: Deploy nginx with SSL"
       block:
         - include_role:
-            name: nginx
+            name: infrastructure/nginx
       become: yes
 
 - name: Cloud Server Playbook
   hosts: cloud
   become: no
   roles:
-    - role: docker
+    - role: base/docker
       become: yes
       tags:
         - 'docker'
     - role: infrastructure
+      become: yes
       tags:
         - 'infrastructure'
-    - role: bridge
+    - role: infrastructure/bridge
       tags:
         - 'bridge'
-    - role: websites
+    - role: services/websites
       tags:
         - 'websites'
-    - role: nginx
+    - role: infrastructure/nginx
       become: yes
       tags:
         - 'nginx'
-    - role: fresh
+    - role: base/fresh
       become: yes
       tags:
         - 'fresh'
-    - role: quotomate
+    - role: services/quotomate
       become: yes
       tags:
         - 'quotomatedb'
-    - role: openvpn
+    - role: networking/openvpn
       become: yes
       tags:
         - 'openvpn'
@@ -68,7 +69,7 @@
   become: yes
   hosts: berlin
   roles:
-    - role: music
+    - role: services/music
       tags:
         - 'music'
 
@@ -77,19 +78,19 @@
   hosts: desktop
   connection: local
   roles:
-    - role: 1tbmount
+    - role: host-specific/1tbmount
       tags:
         - '1tbmount'
-    - role: commands
+    - role: base/commands
       tags:
         - 'commands'
-    - role: ssh-client
+    - role: networking/ssh-client
       tags:
         - 'ssh-client'
 - name: Cloud and Desktop Setup
   hosts: cloud,desktop,berlin
   become: yes
   roles:
-    - role: jumphost
+    - role: networking/jumphost
       tags:
         - 'jumphost'

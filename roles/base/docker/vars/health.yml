@@ -1,0 +1,5 @@
+health_checks:
+  - name: "Docker Engine"
+    category: "base"
+    type: command
+    check: "docker info --format '{{ '{{' }}.ServerVersion{{ '}}' }}'"

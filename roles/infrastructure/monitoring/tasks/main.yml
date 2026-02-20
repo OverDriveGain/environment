@@ -1,0 +1,311 @@
+- name: Set monitoring variables
+  set_fact:
+    grafana_port: "{{ infrastructure.monitoring.grafana_port | default(3001) }}"
+    loki_port: "{{ infrastructure.monitoring.loki_port | default(3100) }}"
+    prometheus_port: "{{ infrastructure.monitoring.prometheus_port | default(9090) }}"
+    grafana_password: "{{ infrastructure.monitoring.grafana_password }}"
+    monitoring_network: "{{ infrastructure.monitoring.network | default('monitoring') }}"
+
+# Collect health checks from all roles
+- name: Find all health check files
+  ansible.builtin.find:
+    paths: "{{ playbook_dir }}/roles"
+    patterns: "health.yml"
+    recurse: yes
+  delegate_to: localhost
+  register: health_files
+
+- name: Initialize health checks list
+  set_fact:
+    all_health_checks: []
+
+- name: Aggregate all health checks
+  set_fact:
+    all_health_checks: "{{ all_health_checks + (lookup('file', item.path) | from_yaml).health_checks }}"
+  loop: "{{ health_files.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Display discovered health checks
+  debug:
+    msg: "Discovered {{ all_health_checks | length }} health checks from {{ health_files.files | length }} files"
+
+# Create directories
+- name: Create monitoring directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/loki
+    - /opt/promtail
+    - /opt/prometheus
+    - /opt/blackbox
+    - /opt/grafana/dashboards
+    - /opt/grafana/provisioning/dashboards
+    - /opt/grafana/provisioning/datasources
+
+- name: Set Grafana directory ownership
+  ansible.builtin.file:
+    path: /opt/grafana
+    state: directory
+    mode: '0755'
+    owner: '472'
+    group: '472'
+    recurse: yes
+
+- name: Create monitoring network
+  community.docker.docker_network:
+    name: "{{ monitoring_network }}"
+    state: present
+
+# Configs
+- name: Create Loki configuration
+  ansible.builtin.copy:
+    dest: /opt/loki/loki-config.yml
+    content: |
+      auth_enabled: false
+
+      server:
+        http_listen_port: 3100
+
+      common:
+        path_prefix: /loki
+        storage:
+          filesystem:
+            chunks_directory: /loki/chunks
+            rules_directory: /loki/rules
+        replication_factor: 1
+        ring:
+          kvstore:
+            store: inmemory
+
+      schema_config:
+        configs:
+          - from: 2020-10-24
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: index_
+              period: 24h
+
+      storage_config:
+        tsdb_shipper:
+          active_index_directory: /loki/tsdb-shipper-active
+          cache_location: /loki/tsdb-shipper-cache
+        filesystem:
+          directory: /loki/chunks
+
+- name: Create Promtail configuration
+  ansible.builtin.copy:
+    dest: /opt/promtail/promtail-config.yml
+    content: |
+      server:
+        http_listen_port: 9080
+        grpc_listen_port: 0
+
+      positions:
+        filename: /tmp/positions.yaml
+
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+
+      scrape_configs:
+        - job_name: docker
+          docker_sd_configs:
+            - host: unix:///var/run/docker.sock
+              refresh_interval: 5s
+          relabel_configs:
+            - source_labels: ['__meta_docker_container_name']
+              regex: '/(.*)'
+              target_label: 'container'
+            - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+              target_label: 'service'
+            - target_label: 'host'
+              replacement: 'cloud'
+
+- name: Create Blackbox Exporter configuration
+  ansible.builtin.copy:
+    dest: /opt/blackbox/blackbox.yml
+    content: |
+      modules:
+        http_2xx:
+          prober: http
+          timeout: 10s
+          http:
+            valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+            valid_status_codes: [200, 301, 302, 403]
+            follow_redirects: true
+            preferred_ip_protocol: "ip4"
+        tcp_connect:
+          prober: tcp
+          timeout: 5s
+
+- name: Build Prometheus targets from health checks
+  set_fact:
+    http_targets: "{{ all_health_checks | selectattr('type', 'equalto', 'http') | map(attribute='check') | list }}"
+    http_labels: "{{ all_health_checks | selectattr('type', 'equalto', 'http') | map(attribute='name') | list }}"
+    port_checks: "{{ all_health_checks | selectattr('type', 'equalto', 'port') | list }}"
+    container_checks: "{{ all_health_checks | selectattr('type', 'equalto', 'container') | list }}"
+    service_checks: "{{ all_health_checks | selectattr('type', 'equalto', 'service') | list }}"
+
+- name: Create Prometheus configuration
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /opt/prometheus/prometheus.yml
+
+- name: Create Grafana datasource provisioning
+  ansible.builtin.copy:
+    dest: /opt/grafana/provisioning/datasources/datasources.yml
+    content: |
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus:9090
+          access: proxy
+          isDefault: true
+        - name: Loki
+          type: loki
+          url: http://loki:3100
+          access: proxy
+
+- name: Create Grafana dashboard provisioning
+  ansible.builtin.copy:
+    dest: /opt/grafana/provisioning/dashboards/dashboards.yml
+    content: |
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          folder: ''
+          type: file
+          options:
+            path: /var/lib/grafana/dashboards
+
+# Stop existing containers
+- name: Stop existing monitoring containers
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - loki
+    - promtail
+    - grafana
+    - prometheus
+    - blackbox-exporter
+  ignore_errors: true
+
+# Start containers
+- name: Start Loki container
+  community.docker.docker_container:
+    name: loki
+    image: grafana/loki:latest
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ monitoring_network }}"
+    ports:
+      - "{{ loki_port }}:3100"
+    volumes:
+      - /opt/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
+- name: Start Promtail container
+  community.docker.docker_container:
+    name: promtail
+    image: grafana/promtail:latest
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ monitoring_network }}"
+    volumes:
+      - /opt/promtail/promtail-config.yml:/etc/promtail/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+
+- name: Start Blackbox Exporter container
+  community.docker.docker_container:
+    name: blackbox-exporter
+    image: prom/blackbox-exporter:latest
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ monitoring_network }}"
+    ports:
+      - "9115:9115"
+    volumes:
+      - /opt/blackbox/blackbox.yml:/config/blackbox.yml
+    command: --config.file=/config/blackbox.yml
+    etc_hosts:
+      host.docker.internal: host-gateway
+
+- name: Start Prometheus container
+  community.docker.docker_container:
+    name: prometheus
+    image: prom/prometheus:latest
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ monitoring_network }}"
+    ports:
+      - "{{ prometheus_port }}:9090"
+    volumes:
+      - /opt/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command: --config.file=/etc/prometheus/prometheus.yml
+
+- name: Start Grafana container
+  community.docker.docker_container:
+    name: grafana
+    image: grafana/grafana:latest
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ monitoring_network }}"
+    ports:
+      - "{{ grafana_port }}:3000"
+    volumes:
+      - /opt/grafana:/var/lib/grafana
+      - /opt/grafana/provisioning:/etc/grafana/provisioning
+    env:
+      GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_password }}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: "/var/lib/grafana/dashboards/environment-health.json"
+
+- name: Deploy Grafana dashboard
+  ansible.builtin.template:
+    src: environment-health.json.j2
+    dest: /opt/grafana/dashboards/environment-health.json
+    owner: '472'
+    group: '472'
+
+- name: Deploy Music Microservice dashboard
+  ansible.builtin.template:
+    src: music-microservice.json.j2
+    dest: /opt/grafana/dashboards/music-microservice.json
+    owner: '472'
+    group: '472'
+
+- name: Wait for Grafana to start
+  ansible.builtin.wait_for:
+    port: "{{ grafana_port }}"
+    timeout: 60
+
+- name: Log monitoring deployment
+  debug:
+    msg: |
+      Monitoring deployed successfully:
+        - Grafana: http://{{ ansible_host }}:{{ grafana_port }}
+        - Prometheus: http://{{ ansible_host }}:{{ prometheus_port }}
+        - Loki: http://{{ ansible_host }}:{{ loki_port }}
+        - Blackbox Exporter: http://{{ ansible_host }}:9115
+        - Username: admin
+        - Password: <configured>
+        - Health checks registered: {{ all_health_checks | length }}
+        - HTTP targets: {{ http_targets | length }}
+        - Port targets: {{ port_checks | length }}
+        - Container targets: {{ container_checks | length }}
+        - Service targets: {{ service_checks | length }}

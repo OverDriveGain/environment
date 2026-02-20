@@ -1,0 +1,5 @@
+health_checks:
+  - name: "Shell Aliases"
+    category: "base"
+    type: command
+    check: "grep -q 'publicip' ~/.zshrc"

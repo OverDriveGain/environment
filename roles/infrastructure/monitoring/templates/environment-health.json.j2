@@ -1,0 +1,542 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+
+    {
+      "title": "Overall Health",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(probe_success == 1) / count(probe_success) * 100",
+          "legendFormat": "Health"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 80 },
+              { "color": "green", "value": 100 }
+            ]
+          }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Total Services",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(probe_success)",
+          "legendFormat": "Total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Services Up",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(probe_success == 1)",
+          "legendFormat": "Up"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "steps": [{ "color": "green", "value": null }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Services Down",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "count(probe_success == 0) OR vector(0)",
+          "legendFormat": "Down"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+
+    {
+      "title": "Infrastructure",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 4 },
+      "collapsed": false
+    },
+    {
+      "title": "Nginx",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 5 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"http://host.docker.internal:80\"}",
+          "legendFormat": "Nginx",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "steps": [{ "color": "orange", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Redis",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 5 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"host.docker.internal:6379\"}",
+          "legendFormat": "Redis",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Grafana",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 5 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"http://grafana:3000/api/health\"}",
+          "legendFormat": "Grafana",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Loki",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 5 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"http://loki:3100/loki/api/v1/labels\"}",
+          "legendFormat": "Loki",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Promtail",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 5 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"http://promtail:9080/ready\"}",
+          "legendFormat": "Promtail",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+
+    {
+      "title": "Services - Websites",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "collapsed": false
+    },
+    {
+      "title": "kaxtus.com",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 0, "y": 10 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://kaxtus.com\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "gaspi.aero",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 4, "y": 10 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://gaspi.aero\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "quotomate.com",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 8, "y": 10 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://quotomate.com\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "calgaryexpedite.com",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 12, "y": 10 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://calgaryexpedite.com\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "honarmand.de",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 16, "y": 10 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://honarmand.de\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "reiddt.com",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 20, "y": 10 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://reiddt.com\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "n8n.kaxtus.com",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 0, "y": 13 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://n8n.kaxtus.com\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "analytics.kaxtus.com",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 4, "y": 13 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://analytics.kaxtus.com\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "music.kaxtus.com",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 8, "y": 13 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://music.kaxtus.com\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+
+    {
+      "title": "Services - Music Microservice",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+      "collapsed": false
+    },
+    {
+      "title": "Musdowlow API",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 17 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"http://host.docker.internal:10086/api/health\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Musplaya",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 17 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=~\".*music.kaxtus.com.*\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Music Server",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 17 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"host.docker.internal:10082\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "PostgreSQL",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 17 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"host.docker.internal:5432\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+
+    {
+      "title": "Networking",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 21 },
+      "collapsed": false
+    },
+    {
+      "title": "SSH Server",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 22 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=~\".*:22\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "Service Check",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "semi-dark-blue", "value": null }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Autossh Tunnel",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 22 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=~\".*autossh.*\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "Service Check",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "semi-dark-blue", "value": null }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "OpenVPN",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 22 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=~\".*openvpn.*\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "Service Check",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "semi-dark-blue", "value": null }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+
+    {
+      "title": "Response Times",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 },
+      "collapsed": false
+    },
+    {
+      "title": "HTTP Response Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 27 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "probe_duration_seconds{job='blackbox-http'}",
+          "legendFormat": "{% raw %}{{ instance }}{% endraw %}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "never"
+          }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] }
+      }
+    },
+
+    {
+      "title": "Logs",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
+      "collapsed": false
+    },
+    {
+      "title": "Container Logs",
+      "type": "logs",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 36 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "{container=~\".+\"} |= ``",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "enableLogDetails": true
+      }
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["environment", "health"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "30s",
+  "title": "Environment Health",
+  "uid": "environment-health"
+}

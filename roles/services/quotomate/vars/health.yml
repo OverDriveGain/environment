@@ -1,0 +1,6 @@
+health_checks:
+  - name: "PostgreSQL"
+    category: "services"
+    type: port
+    host: host.docker.internal
+    check: 5432

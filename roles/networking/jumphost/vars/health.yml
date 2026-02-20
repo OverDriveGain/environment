@@ -1,0 +1,9 @@
+health_checks:
+  - name: "SSH Server"
+    category: "networking"
+    type: service
+    check: "sshd"
+  - name: "Autossh Tunnel"
+    category: "networking"
+    type: service
+    check: "autossh"

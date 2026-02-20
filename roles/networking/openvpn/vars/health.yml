@@ -1,0 +1,5 @@
+health_checks:
+  - name: "OpenVPN"
+    category: "networking"
+    type: service
+    check: "openvpn"
