@@ -506,15 +506,125 @@
     },
 
     {
-      "title": "Logs",
+      "title": "Remote Access",
       "type": "row",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
       "collapsed": false
     },
     {
+      "title": "Berlin SSH Tunnel",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 36 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"host.docker.internal:10022\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "title": "Laptop SSH Tunnel",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 36 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"host.docker.internal:10024\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "title": "Windows RDP Tunnel",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 36 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"host.docker.internal:3389\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "title": "Berlin RDP Tunnel",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 36 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"host.docker.internal:13389\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "title": "Connect",
+      "type": "text",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 36 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Berlin RDP:** `xfreerdp /v:kaxtus.com:13389 /u:manar`\n\n**Windows RDP:** `xfreerdp /v:kaxtus.com:3389 /u:manar`\n\n**Berlin SSH:** `ssh -p 10022 manar@kaxtus.com`"
+      }
+    },
+
+    {
+      "title": "Infrastructure Map",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 40 },
+      "collapsed": false
+    },
+    {
+      "title": "Cloud Server",
+      "type": "text",
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 41 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Cloud (kaxtus.com)\n**Public IP:** 159.69.80.128\n\n| Service | Port |\n|---------|------|\n| SSH | 22 |\n| HTTP | 80 |\n| HTTPS | 443 |\n| Grafana | 3001 |\n| Loki | 3100 |\n| Prometheus | 9090 |\n| Blackbox | 9115 |\n| Redis | 6379 |"
+      }
+    },
+    {
+      "title": "Berlin Desktop (Tunnels)",
+      "type": "text",
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 41 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Berlin Desktop\n**Local IP:** 192.168.0.x (DHCP)\n**Access via:** kaxtus.com reverse tunnels\n\n| Service | Cloud Port | Local Port |\n|---------|-----------|------------|\n| SSH | 10022 | 22 |\n| RDP (xfreerdp) | 13389 | 3389 |\n| Music (Navidrome) | 10082 | 10082 |\n| Musdowlow | 10086 | 10086 |\n| Nextcloud | 10087 | 10087 |\n| Ollama | 11434 | 11434 |\n| Casabot | 10085 | 5000 |"
+      }
+    },
+    {
+      "title": "Other Hosts",
+      "type": "text",
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 41 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Other Hosts\n\n**Laptop**\n- Tunnel SSH: `kaxtus.com:10024`\n- User: manar.zaboub\n\n**Windows (Thinkcentre)**\n- Local IP: 192.168.0.166\n- RDP tunnel: `kaxtus.com:3389`\n\n**Raspberry Pi (Home Assistant)**\n- Local IP: 192.168.0.176\n- Port: 8123\n- Domain: house.zaboub.com"
+      }
+    },
+
+    {
+      "title": "Logs",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 48 },
+      "collapsed": false
+    },
+    {
       "title": "Container Logs",
       "type": "logs",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 36 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 49 },
       "datasource": "Loki",
       "targets": [
         {
