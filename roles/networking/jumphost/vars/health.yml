@@ -7,3 +7,23 @@ health_checks:
     category: "networking"
     type: service
     check: "autossh"
+  - name: "Berlin SSH"
+    category: "networking"
+    type: port
+    host: host.docker.internal
+    check: 10022
+  - name: "Laptop SSH"
+    category: "networking"
+    type: port
+    host: host.docker.internal
+    check: 10024
+  - name: "Windows RDP"
+    category: "networking"
+    type: port
+    host: host.docker.internal
+    check: 3389
+  - name: "Berlin RDP"
+    category: "networking"
+    type: port
+    host: host.docker.internal
+    check: 13389

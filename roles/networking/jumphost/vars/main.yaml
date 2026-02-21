@@ -69,5 +69,14 @@ local_host_dict : {
     "service_name": "ssh_jump_kaxtus_nextcloud",
     "comments": "Nextcloud jumphost to run on berlin desktop"
   },
+  "berlin_rdp": {
+    "username": "manar",
+    "port": "13389",
+    "local_ssh_port": "3389",
+    "ssh_key_dir": "/home/manar/.ssh/id_rsa",
+    "ssh_pub_key_dir": "/home/manar/.ssh/id_rsa.pub",
+    "service_name": "ssh_jump_kaxtus_berlin_rdp",
+    "comments": "Berlin desktop RDP tunnel to run on berlin desktop"
+  },
 
 }
