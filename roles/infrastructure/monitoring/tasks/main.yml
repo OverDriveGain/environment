@@ -21,7 +21,7 @@
 
 - name: Aggregate all health checks
   set_fact:
-    all_health_checks: "{{ all_health_checks + (lookup('file', item.path) | from_yaml).health_checks }}"
+    all_health_checks: "{{ all_health_checks + (lookup('template', item.path) | from_yaml).health_checks }}"
   loop: "{{ health_files.files }}"
   loop_control:
     label: "{{ item.path | basename }}"

@@ -1,0 +1,5 @@
+health_checks:
+  - name: "Youtube"
+    category: "music"
+    type: http
+    check: "http://host.docker.internal:{{ websites.youtube.port }}/health"

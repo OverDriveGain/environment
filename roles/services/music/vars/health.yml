@@ -1,10 +1,6 @@
 health_checks:
-  - name: "Musplaya"
-    category: "services"
-    type: container
-    check: "musplaya"
   - name: "Music Server"
-    category: "services"
+    category: "music"
     type: port
     host: host.docker.internal
-    check: 10082
+    check: {{ websites.music.port }}

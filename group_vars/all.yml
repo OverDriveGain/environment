@@ -70,6 +70,21 @@ websites:
         ssl_enabled: true
         ssl_email: "admin@kaxtus.com"
         template: 'proxy_app'
+    musid:
+        domains: ['musid.kaxtus.com']
+        port: 10088      # cloud tunnel port
+        local_port: 10084  # berlin local port (10084 conflicts with calgaryexpedite on cloud side)
+        container_name: musid
+        ssl_enabled: true
+        ssl_email: "admin@kaxtus.com"
+        template: 'proxy_app'
+    youtube:
+        domains: ['youtube.kaxtus.com']
+        port: 3033
+        container_name: youtube
+        ssl_enabled: true
+        ssl_email: "admin@kaxtus.com"
+        template: 'proxy_app'
     nextcloud:
         domains: [ 'nextcloud.kaxtus.com' ]
         port: 10087

@@ -1,0 +1,5 @@
+health_checks:
+  - name: "Musid"
+    category: "music"
+    type: http
+    check: "http://host.docker.internal:{{ websites.musid.port }}/api/health"

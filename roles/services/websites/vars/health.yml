@@ -35,3 +35,11 @@ health_checks:
     category: "services"
     type: http
     check: "https://reiddt.com"
+  - name: "casabot.quotomate.com"
+    category: "services"
+    type: http
+    check: "https://casabot.quotomate.com/health"
+  - name: "ollama.kaxtus.com"
+    category: "services"
+    type: http
+    check: "https://ollama.kaxtus.com"

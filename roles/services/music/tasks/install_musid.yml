@@ -1,0 +1,41 @@
+# ============================
+# Musid Deployment (Berlin)
+# Music identification & tagging service
+# ============================
+
+- name: Set Musid facts
+  set_fact:
+    musid_container: "{{ websites.musid.container_name }}"
+    musid_port: "{{ websites.musid.local_port }}"
+
+- name: Pull Musid Docker image
+  docker_image:
+    name: manarmanar/musid
+    tag: latest
+    source: pull
+    force_source: yes
+    state: present
+
+- name: Stop existing Musid container
+  docker_container:
+    name: "{{ musid_container }}"
+    state: absent
+  ignore_errors: yes
+
+- name: Run Musid container
+  docker_container:
+    name: "{{ musid_container }}"
+    image: manarmanar/musid:latest
+    state: started
+    recreate: yes
+    restart_policy: unless-stopped
+    ports:
+      - "{{ musid_port }}:3001"
+    volumes:
+      - "{{ music_path }}:/mnt/music"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

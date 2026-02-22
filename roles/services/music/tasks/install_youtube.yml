@@ -1,0 +1,90 @@
+# ============================
+# Youtube Service Deployment (Berlin)
+# YouTube comments & analytics service
+# Deps: PostgreSQL, Redis
+# ============================
+
+- name: Set Youtube facts
+  set_fact:
+    youtube_container: "{{ websites.youtube.container_name }}"
+    youtube_port: "{{ websites.youtube.port }}"
+    youtube_pg_container: "{{ websites.youtube.container_name }}-postgres"
+    youtube_redis_container: "{{ websites.youtube.container_name }}-redis"
+    youtube_network: "{{ websites.youtube.container_name }}-net"
+
+- name: Create YouTube postgres data directory
+  file:
+    path: "/opt/{{ youtube_container }}/postgres"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Create youtube Docker network
+  docker_network:
+    name: "{{ youtube_network }}"
+    state: present
+
+- name: Stop existing YouTube containers
+  docker_container:
+    name: "{{ item }}"
+    state: absent
+  ignore_errors: yes
+  loop:
+    - "{{ youtube_container }}"
+    - "{{ youtube_pg_container }}"
+    - "{{ youtube_redis_container }}"
+
+- name: Run PostgreSQL for YouTube
+  docker_container:
+    name: "{{ youtube_pg_container }}"
+    image: postgres:15-alpine
+    state: started
+    recreate: yes
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ youtube_network }}"
+    volumes:
+      - "/opt/{{ youtube_container }}/postgres:/var/lib/postgresql/data"
+    env:
+      POSTGRES_DB: "{{ youtube_container }}"
+      POSTGRES_USER: "{{ youtube_container }}"
+      POSTGRES_PASSWORD: "{{ vault_youtube_db_password | default('youtube') }}"
+
+- name: Run Redis for YouTube
+  docker_container:
+    name: "{{ youtube_redis_container }}"
+    image: redis:7-alpine
+    state: started
+    recreate: yes
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ youtube_network }}"
+
+- name: Pull YouTube Docker image
+  docker_image:
+    name: manarmanar/youtube
+    tag: latest
+    source: pull
+    force_source: yes
+    state: present
+
+- name: Run YouTube container
+  docker_container:
+    name: "{{ youtube_container }}"
+    image: manarmanar/youtube:latest
+    state: started
+    recreate: yes
+    restart_policy: unless-stopped
+    ports:
+      - "{{ youtube_port }}:8000"
+    networks:
+      - name: "{{ youtube_network }}"
+    env:
+      DATABASE_URL: "postgresql://{{ youtube_container }}:{{ vault_youtube_db_password | default('youtube') }}@{{ youtube_pg_container }}:5432/{{ youtube_container }}"
+      REDIS_URL: "redis://{{ youtube_redis_container }}:{{ infrastructure.redis.port }}"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

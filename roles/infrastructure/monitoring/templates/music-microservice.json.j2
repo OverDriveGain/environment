@@ -8,35 +8,103 @@
   "panels": [
 
     {
-      "title": "Music Health",
+      "title": "Overview",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
+    {
+      "title": "Music Services Health",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 1 },
       "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "count(probe_success{instance=~\".*(music|musdowlow).*\"} == 1) / count(probe_success{instance=~\".*(music|musdowlow).*\"}) * 100",
-          "legendFormat": "Health"
-        }
-      ],
+      "targets": [{
+        "expr": "count(probe_success{service_group=\"music\"} == 1) / count(probe_success{service_group=\"music\"}) * 100",
+        "instant": true,
+        "legendFormat": "Health %"
+      }],
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 0,
-          "thresholds": {
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 50 },
-              { "color": "green", "value": 100 }
-            ]
-          }
+          "min": 0,
+          "max": 100,
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 50 }, { "color": "green", "value": 100 }] }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "title": "Services Up",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 1 },
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "count(probe_success{service_group=\"music\"} == 1)",
+        "instant": true,
+        "legendFormat": "Up"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "0",
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "title": "Services Down",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 1 },
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "count(probe_success{service_group=\"music\"} == 0)",
+        "instant": true,
+        "legendFormat": "Down"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "0",
+          "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+
+    {
+      "title": "Architecture",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "collapsed": false
+    },
+    {
+      "title": "Music Microservice Topology",
+      "type": "text",
+      "gridPos": { "h": 10, "w": 14, "x": 0, "y": 6 },
+      "options": {
+        "mode": "markdown",
+        "content": "```\n                    Internet\n                       │\n             kaxtus.com (cloud)\n                       │\n                  Nginx :443\n          ┌────────────┴────────────┐\n          │                         │\n   music.kaxtus.com       musdowlow.kaxtus.com\n          │                         │\n    ──────────────── Berlin Desktop ────────────────\n    │                                              │\n┌───────────┐   ┌────────────┐   ┌─────────────┐  │\n│  Musplaya │   │  Musdowlow │   │    Musid    │  │\n│ Navidrome │   │  YT Downl. │   │  Shazam ID  │  │\n│  :10082   │   │   :10086   │   │   :10084    │  │\n│ (Docker)  │   │  (Docker)  │   │  (Docker)   │  │\n└─────┬─────┘   └─────┬──────┘   └──────┬──────┘  │\n      │               │                 │          │\n  /mnt/tb/Music  YoutubeDownloads   /mnt/tb/Music  │\n                                                   │\n              ┌──────────────────┐                 │\n              │     Youtube      │                 │\n              │ YT Comments API  │                 │\n              │     :3033        │                 │\n              │    (Docker)      │─────────────────┘\n              └────────┬─────────┘\n               ┌───────┴───────┐\n           Redis:6379     PG:5432\n```"
+      }
+    },
+    {
+      "title": "Services",
+      "type": "text",
+      "gridPos": { "h": 10, "w": 10, "x": 14, "y": 6 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Services\n\n| Service | Purpose | Port | Host |\n|---------|---------|------|------|\n| **Musplaya** | Navidrome music streaming | 10082 | Berlin |\n| **Musdowlow** | YouTube → MP3 downloader | 10086 | Berlin |\n| **Musid** | Shazam music ID & MP3 tagging | 10084 (berlin) / 10088 (cloud) | Berlin |\n| **Youtube** | YT comments & analytics | 3033 | Berlin |\n\n## Storage\n\n| Path | Used by |\n|------|---------|\n| `/mnt/tb/Music` | Musplaya (library), Musid (tagging) |\n| `/mnt/tb/Music/YoutubeDownloads` | Musdowlow (output) |\n\n## Dependencies\n\n| Service | Depends on |\n|---------|------------|\n| Youtube | PostgreSQL :5432, Redis :6379 |\n| Musdowlow | yt-dlp (internal) |\n| Musid | Shazam API (external) |"
+      }
+    },
+
+    {
+      "title": "Service Status",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+      "collapsed": false
     },
     {
       "title": "Musplaya",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 17 },
       "datasource": "Prometheus",
       "targets": [{ "expr": "probe_success{instance=\"https://music.kaxtus.com\"}", "instant": true }],
       "fieldConfig": {
@@ -46,12 +114,12 @@
           "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
     },
     {
-      "title": "Musdowlow API",
+      "title": "Musdowlow",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 17 },
       "datasource": "Prometheus",
       "targets": [{ "expr": "probe_success{instance=\"http://host.docker.internal:10086/api/health\"}", "instant": true }],
       "fieldConfig": {
@@ -61,12 +129,42 @@
           "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "title": "Musid",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 17 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"http://host.docker.internal:10088/api/health\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "title": "Youtube",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 17 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"http://host.docker.internal:3033/health\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
     },
     {
       "title": "Music Server Port",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 21 },
       "datasource": "Prometheus",
       "targets": [{ "expr": "probe_success{instance=\"host.docker.internal:10082\"}", "instant": true }],
       "fieldConfig": {
@@ -76,113 +174,124 @@
           "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
         }
       },
-      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "title": "PostgreSQL",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 21 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"host.docker.internal:5432\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "title": "Redis",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 21 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"host.docker.internal:6379\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
     },
 
     {
       "title": "Response Times",
       "type": "row",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 4 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 },
       "collapsed": false
     },
     {
       "title": "Musplaya Response Time",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 26 },
       "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "probe_duration_seconds{instance=\"https://music.kaxtus.com\"}",
-          "legendFormat": "music.kaxtus.com"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "showPoints": "never" }
-        }
-      },
-      "options": {
-        "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
-      }
+      "targets": [{ "expr": "probe_duration_seconds{instance=\"https://music.kaxtus.com\"}", "legendFormat": "Musplaya" }],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 1, "fillOpacity": 10, "showPoints": "never" } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] } }
     },
     {
       "title": "Musdowlow Response Time",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 26 },
       "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "probe_duration_seconds{instance=\"http://host.docker.internal:10086/api/health\"}",
-          "legendFormat": "musdowlow API"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "custom": { "lineWidth": 1, "fillOpacity": 10, "showPoints": "never" }
-        }
-      },
-      "options": {
-        "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
-      }
+      "targets": [{ "expr": "probe_duration_seconds{instance=\"http://host.docker.internal:10086/api/health\"}", "legendFormat": "Musdowlow" }],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 1, "fillOpacity": 10, "showPoints": "never" } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] } }
     },
 
     {
       "title": "Musplaya Logs",
       "type": "row",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 },
       "collapsed": false
     },
     {
       "title": "Musplaya Container Logs",
       "type": "logs",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 34 },
       "datasource": "Loki",
-      "targets": [
-        {
-          "expr": "{container=\"musplaya\", host=\"berlin\"}",
-          "refId": "A"
-        }
-      ],
-      "options": {
-        "showTime": true,
-        "showLabels": false,
-        "showCommonLabels": false,
-        "wrapLogMessage": true,
-        "sortOrder": "Descending",
-        "enableLogDetails": true
-      }
+      "targets": [{ "expr": "{container=\"musplaya\", host=\"berlin\"}", "refId": "A" }],
+      "options": { "showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending", "enableLogDetails": true }
     },
 
     {
       "title": "Musdowlow Logs",
       "type": "row",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 42 },
       "collapsed": false
     },
     {
       "title": "Musdowlow Container Logs",
       "type": "logs",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 25 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 43 },
       "datasource": "Loki",
-      "targets": [
-        {
-          "expr": "{container=\"musdowlow\", host=\"berlin\"}",
-          "refId": "A"
-        }
-      ],
-      "options": {
-        "showTime": true,
-        "showLabels": false,
-        "showCommonLabels": false,
-        "wrapLogMessage": true,
-        "sortOrder": "Descending",
-        "enableLogDetails": true
-      }
+      "targets": [{ "expr": "{container=\"musdowlow\", host=\"berlin\"}", "refId": "A" }],
+      "options": { "showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending", "enableLogDetails": true }
+    },
+
+    {
+      "title": "Musid Logs",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 51 },
+      "collapsed": false
+    },
+    {
+      "title": "Musid Logs",
+      "type": "logs",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 52 },
+      "datasource": "Loki",
+      "targets": [{ "expr": "{container=\"musid\", host=\"berlin\"}", "refId": "A" }],
+      "options": { "showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending", "enableLogDetails": true }
+    },
+
+    {
+      "title": "Youtube Logs",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 60 },
+      "collapsed": false
+    },
+    {
+      "title": "Youtube Container Logs",
+      "type": "logs",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 61 },
+      "datasource": "Loki",
+      "targets": [{ "expr": "{container=\"youtube\", host=\"berlin\"}", "refId": "A" }],
+      "options": { "showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending", "enableLogDetails": true }
     }
+
   ],
   "schemaVersion": 39,
   "tags": ["music", "microservice"],

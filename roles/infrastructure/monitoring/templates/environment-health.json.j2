@@ -351,6 +351,36 @@
       },
       "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
     },
+    {
+      "title": "casabot.quotomate.com",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 12, "y": 13 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://casabot.quotomate.com/health\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "ollama.kaxtus.com",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 16, "y": 13 },
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "probe_success{instance=\"https://ollama.kaxtus.com\"}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "N/A",
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
 
     {
       "title": "Services - Music Microservice",
@@ -426,49 +456,13 @@
       "collapsed": false
     },
     {
-      "title": "SSH Server",
-      "type": "stat",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 22 },
-      "datasource": "Prometheus",
-      "targets": [{ "expr": "probe_success{instance=~\".*:22\"}", "instant": true }],
-      "fieldConfig": {
-        "defaults": {
-          "noValue": "Service Check",
-          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
-          "thresholds": { "steps": [{ "color": "semi-dark-blue", "value": null }] }
-        }
-      },
-      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
-    },
-    {
-      "title": "Autossh Tunnel",
-      "type": "stat",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 22 },
-      "datasource": "Prometheus",
-      "targets": [{ "expr": "probe_success{instance=~\".*autossh.*\"}", "instant": true }],
-      "fieldConfig": {
-        "defaults": {
-          "noValue": "Service Check",
-          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
-          "thresholds": { "steps": [{ "color": "semi-dark-blue", "value": null }] }
-        }
-      },
-      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
-    },
-    {
       "title": "OpenVPN",
-      "type": "stat",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 22 },
-      "datasource": "Prometheus",
-      "targets": [{ "expr": "probe_success{instance=~\".*openvpn.*\"}", "instant": true }],
-      "fieldConfig": {
-        "defaults": {
-          "noValue": "Service Check",
-          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
-          "thresholds": { "steps": [{ "color": "semi-dark-blue", "value": null }] }
-        }
-      },
-      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+      "type": "text",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 22 },
+      "options": {
+        "mode": "markdown",
+        "content": "**OpenVPN Server**\n\nProto: UDP · Port: 1194\nNetwork: 10.8.0.0/24\n\n_UDP cannot be probed by Blackbox_"
+      }
     },
 
     {
@@ -602,7 +596,7 @@
       "gridPos": { "h": 7, "w": 8, "x": 8, "y": 41 },
       "options": {
         "mode": "markdown",
-        "content": "## Berlin Desktop\n**Local IP:** 192.168.0.x (DHCP)\n**Access via:** kaxtus.com reverse tunnels\n\n| Service | Cloud Port | Local Port |\n|---------|-----------|------------|\n| SSH | 10022 | 22 |\n| RDP (xfreerdp) | 13389 | 3389 |\n| Music (Navidrome) | 10082 | 10082 |\n| Musdowlow | 10086 | 10086 |\n| Nextcloud | 10087 | 10087 |\n| Ollama | 11434 | 11434 |\n| Casabot | 10085 | 5000 |"
+        "content": "## Berlin Desktop\n**Local IP:** 192.168.0.x (DHCP)\n**Access via:** kaxtus.com reverse tunnels\n\n| Service | Domain | Cloud Port | Local Port |\n|---------|--------|-----------|------------|\n| SSH | — | 10022 | 22 |\n| RDP | — | 13389 | 3389 |\n| Musplaya | music.kaxtus.com | 10082 | 10082 |\n| Musdowlow | musdowlow.kaxtus.com | 10086 | 10086 |\n| Nextcloud | nextcloud.kaxtus.com | 10087 | 10087 |\n| Ollama | ollama.kaxtus.com | 11434 | 11434 |\n| Casabot | casabot.quotomate.com | 10085 | 5000 |"
       }
     },
     {

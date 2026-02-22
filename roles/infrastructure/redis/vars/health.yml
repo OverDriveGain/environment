@@ -3,4 +3,4 @@ health_checks:
     category: "infrastructure"
     type: port
     host: host.docker.internal
-    check: 6379
+    check: {{ infrastructure.redis.port }}

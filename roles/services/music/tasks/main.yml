@@ -6,3 +6,9 @@
 
 - import_tasks: install_promtail.yml
   tags: ["music:promtail"]
+
+- import_tasks: install_musid.yml
+  tags: ["music:musid"]
+
+- import_tasks: install_youtube.yml
+  tags: ["music:youtube"]

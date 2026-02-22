@@ -78,5 +78,23 @@ local_host_dict : {
     "service_name": "ssh_jump_kaxtus_berlin_rdp",
     "comments": "Berlin desktop RDP tunnel to run on berlin desktop"
   },
+  "berlin_musid": {
+    "username": "manar",
+    "port": "10088",
+    "local_ssh_port": "10084",
+    "ssh_key_dir": "/home/manar/.ssh/id_rsa",
+    "ssh_pub_key_dir": "/home/manar/.ssh/id_rsa.pub",
+    "service_name": "ssh_jump_kaxtus_musid",
+    "comments": "Musid music identification service (cloud port 10088 -> berlin port 10084)"
+  },
+  "berlin_youtube": {
+    "username": "manar",
+    "port": "3033",
+    "local_ssh_port": "3033",
+    "ssh_key_dir": "/home/manar/.ssh/id_rsa",
+    "ssh_pub_key_dir": "/home/manar/.ssh/id_rsa.pub",
+    "service_name": "ssh_jump_kaxtus_youtube",
+    "comments": "Youtube comments/analytics service tunnel"
+  },
 
 }
